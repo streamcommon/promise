@@ -23,26 +23,6 @@ abstract class AbstractPromise implements PromiseInterface
     private $state = PromiseInterface::STATE_PENDING;
 
     /**
-     * AbstractPromise constructor.
-     *
-     * @param callable $promise
-     */
-    public function __construct(callable $promise)
-    {
-    }
-
-    /**
-     * This method create new promise instance
-     *
-     * @param callable $promise
-     * @return PromiseCo
-     */
-    public static function create(callable $promise): AbstractPromise
-    {
-        return new static($promise);
-    }
-
-    /**
      * Change promise state
      *
      * @param int $state

@@ -40,7 +40,6 @@ final class PromiseCo extends AbstractPromise
                 'PromiseCo MUST running only in CLI mode with swoole extension'
             );
         }
-        parent::__construct($promise);
         $this->sequenceSet = new Channel();
         Coroutine::create(function (callable $promise) {
             try {
@@ -58,6 +57,17 @@ final class PromiseCo extends AbstractPromise
                 $this->sequenceSet->push($exception, 60);
             }
         }, $promise);
+    }
+
+    /**
+     * This method create new promise instance
+     *
+     * @param callable $promise
+     * @return PromiseCo
+     */
+    public static function create(callable $promise): PromiseCo
+    {
+        return new static($promise);
     }
 
     /**

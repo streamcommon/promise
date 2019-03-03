@@ -20,7 +20,7 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
     throw new \RuntimeException('File autoload.php not exists');
 }
 
-$promise = new Promise(function (callable $resolve) {
+$promise = Promise::create(function (callable $resolve) {
     $resolve(41);
 });
 $promise->then(function ($value) {

@@ -38,9 +38,19 @@ final class Promise extends AbstractPromise
      */
     public function __construct(callable $promise)
     {
-        parent::__construct($promise);
         $this->promise = $promise;
         $this->sequenceSet = new SequenceSet();
+    }
+
+    /**
+     * This method create new promise instance
+     *
+     * @param callable $promise
+     * @return Promise
+     */
+    public static function create(callable $promise): Promise
+    {
+        return new static($promise);
     }
 
     /**
