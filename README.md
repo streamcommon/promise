@@ -23,8 +23,8 @@ Or add into your `composer.json`:
 ```
 
 ## TRUE Promise
-If you want see TRUE promise when install [Swoole](http://php.net/manual/en/swoole.installation.php) extension.
-For more info visit the [Swoole website](https://www.swoole.co.uk/)
+If you want see TRUE promise then install [Swoole](http://php.net/manual/en/swoole.installation.php) extension. 
+For more info visit the [Swoole repo](https://github.com/swoole/swoole-src)
 > NOTE: TRUE promise work only in CLI mode
 
 ```php
