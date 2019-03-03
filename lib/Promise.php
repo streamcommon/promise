@@ -22,14 +22,16 @@ use function call_user_func_array;
  *
  * @package Streamcommon\Promise
  */
-final class Promise extends AbstractPromise
+final class Promise implements PromiseInterface
 {
+    /** @var int */
+    private $state = PromiseInterface::STATE_PENDING;
     /** @var SequenceSet */
-    protected $sequenceSet;
+    private $sequenceSet;
     /** @var callable */
-    protected $promise;
+    private $promise;
     /** @var mixed */
-    protected $value;
+    private $value;
 
     /**
      * Promise constructor.
@@ -94,5 +96,35 @@ final class Promise extends AbstractPromise
                 $this->value = $callable($value);
             }
         }
+    }
+
+    /**
+     * Change promise state
+     *
+     * @param int $state
+     */
+    private function setState(int $state): void
+    {
+        $this->state = $state;
+    }
+
+    /**
+     * Promise is fulfilled
+     *
+     * @return bool
+     */
+    private function isFulfilled(): bool
+    {
+        return $this->state === PromiseInterface::STATE_FULFILLED;
+    }
+
+    /**
+     * Promise is rejected
+     *
+     * @return bool
+     */
+    private function isRejected(): bool
+    {
+        return $this->state === PromiseInterface::STATE_REJECTED;
     }
 }
