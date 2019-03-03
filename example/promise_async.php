@@ -25,32 +25,30 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 }
 
 $promise = PromiseCo::create(function (callable $resolve) {
-    $resolve(55);
+    $resolve(41);
     echo 1 . PHP_EOL;
 });
 echo 2 . PHP_EOL;
 $promise->then(function ($value) {
     sleep(3);
     echo $value . PHP_EOL;
-    return 56;
+    return $value + 1;
 })->then(function ($value) {
     echo $value . PHP_EOL;
-    return 57;
 });
 echo 3 . PHP_EOL;
 
 $promise = PromiseCo::create(function (callable $resolve) {
-    $resolve(155);
+    $resolve(43);
     echo 5 . PHP_EOL;
 });
 echo 6 . PHP_EOL;
 $promise->then(function ($value) {
     sleep(1);
     echo $value . PHP_EOL;
-    return 156;
+    return $value - 1;
 })->then(function ($value) {
     echo $value . PHP_EOL;
-    return 157;
 });
 
 echo 7 . PHP_EOL;

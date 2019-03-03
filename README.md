@@ -1,9 +1,9 @@
-# PHP promise implementation
+# PHP Promises/A implementation
 [![Latest Stable Version](https://poser.pugx.org/streamcommon/promise/v/stable)](https://packagist.org/packages/streamcommon/promise)
 [![Total Downloads](https://poser.pugx.org/streamcommon/promise/downloads)](https://packagist.org/packages/streamcommon/promise)
 [![License](https://poser.pugx.org/streamcommon/promise/license)](./LICENSE)
 
-This package provides [Promise/A+](https://promisesaplus.com/) PHP implementation.
+This package provides [Promise/A](http://wiki.commonjs.org/wiki/Promises/A) PHP implementation.
 
 # Branches
 [![Master][Master branch image]][Master branch] [![Build Status][Master image]][Master] [![Coverage Status][Master coverage image]][Master coverage]
@@ -21,11 +21,12 @@ Or add into your `composer.json`:
         "streamcommon/promise": "*"
     }
 ```
+
+## TRUE Promise
 If you want see TRUE promise when install [Swoole](http://php.net/manual/en/swoole.installation.php) extension.
 For more info visit the [Swoole website](https://www.swoole.co.uk/)
 > NOTE: TRUE promise work only in CLI mode
 
-## TRUE Promise
 ```php
 use Streamcommon\Promise\PromiseCo;
 
@@ -40,6 +41,11 @@ $promise->then(function ($value) {
 })->then(function ($value) {
     echo $value . PHP_EOL;
 });
+```
+
+## Standard Promise
+```php
+
 ```
 
 [Master branch]: https://github.com/streamcommon/promise/tree/master

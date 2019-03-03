@@ -8,7 +8,8 @@
     "php promise"
   ],
   "require": {
-    "php": "^7.2"
+    "php": "^7.2",
+    "ext-ds": "^1.2.8"
   },
   "require-dev": {
     "ext-swoole": "^4.2.13",
@@ -17,6 +18,9 @@
     "phpstan/phpstan": "^0.11.1",
     "phpunit/phpunit": "^8.0",
     "php-coveralls/php-coveralls": "^2.1.0"
+  },
+  "suggest": {
+    "ext-swoole": "Install extension(^4.2.13) for using PromiseCo"
   },
   "autoload": {
     "psr-4": {

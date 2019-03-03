@@ -14,6 +14,7 @@ namespace Streamcommon\Promise;
 
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
+use Throwable;
 
 /**
  * Class Promise
@@ -39,6 +40,7 @@ final class PromiseCo extends AbstractPromise
                 'PromiseCo MUST running only in CLI mode with swoole extension'
             );
         }
+        parent::__construct($promise);
         $this->sequenceSet = new Channel();
         Coroutine::create(function (callable $promise) {
             try {
@@ -51,7 +53,7 @@ final class PromiseCo extends AbstractPromise
                     $this->sequenceSet->push($value, 60);
                 };
                 $promise($resolve, $reject);
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 $this->setState(PromiseInterface::STATE_REJECTED);
                 $this->sequenceSet->push($exception, 60);
             }
@@ -59,17 +61,7 @@ final class PromiseCo extends AbstractPromise
     }
 
     /**
-     * This method create new promise instance
-     *
-     * @param callable $promise
-     * @return PromiseCo
-     */
-    public static function create(callable $promise): AbstractPromise
-    {
-        return new static($promise);
-    }
-
-    /**
+     * It be called after promise change stage
      *
      * @param callable|null $onFulfilled
      * @param callable|null $onRejected
