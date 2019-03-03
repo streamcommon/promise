@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<ruleset name="StreamCommon Team Coding Standard">
+    <rule ref="./vendor/streamcommon/coding-standard/ruleset.xml"/>
+    <file>example</file>
+    <file>lib</file>
+</ruleset>
