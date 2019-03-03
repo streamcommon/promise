@@ -96,6 +96,7 @@ final class Promise implements PromiseInterface
                 $this->value = $callable($value);
             }
         }
+        $this->sequenceSet->clear();
     }
 
     /**
