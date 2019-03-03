@@ -53,4 +53,3 @@ $promise->then(function ($value) {
 });
 
 echo 7 . PHP_EOL;
-
