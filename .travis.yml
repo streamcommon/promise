@@ -8,7 +8,7 @@ cache:
 php:
   - 7.2
 
-before_script:
+before_install:
   - pecl install ds
   - pecl install swoole
   - phpenv config-add ./test/travis/php.ini
