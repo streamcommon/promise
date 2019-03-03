@@ -19,6 +19,8 @@ use Swoole\Coroutine\Channel;
  * Class Promise
  *
  * @package Streamcommon\PromiseCo
+ *
+ * @todo what about free channel???
  */
 final class PromiseCo extends AbstractPromise
 {
@@ -50,7 +52,8 @@ final class PromiseCo extends AbstractPromise
                 };
                 $promise($resolve, $reject);
             } catch (\Throwable $exception) {
-                // todo
+                $this->setState(PromiseInterface::STATE_REJECTED);
+                $this->sequenceSet->push($exception, 60);
             }
         }, $promise);
     }
