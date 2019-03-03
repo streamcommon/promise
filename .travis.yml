@@ -9,8 +9,9 @@ php:
   - 7.2
 
 before_install:
+  - pecl channel-update pecl.php.net
   - pecl install ds
-  - pecl install swoole
+  - printf "\n" | pecl install swoole
   - phpenv config-add ./test/travis/php.ini
 
 install:
