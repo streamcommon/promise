@@ -1,10 +1,9 @@
-# doctrine-manager-interop
+# PHP promise implementation
 [![Latest Stable Version](https://poser.pugx.org/streamcommon/promise/v/stable)](https://packagist.org/packages/streamcommon/promise)
 [![Total Downloads](https://poser.pugx.org/streamcommon/promise/downloads)](https://packagist.org/packages/streamcommon/promise)
 [![License](https://poser.pugx.org/streamcommon/promise/license)](./LICENSE)
 
 This package provides [Promise/A+](https://promisesaplus.com/) PHP implementation.
-> NOTE: This package provide `PromiseCo` class working only in CLI mode and with `swoole` php extension 
 
 # Branches
 [![Master][Master branch image]][Master branch] [![Build Status][Master image]][Master] [![Coverage Status][Master coverage image]][Master coverage]
@@ -21,6 +20,26 @@ Or add into your `composer.json`:
     "require": {
         "streamcommon/promise": "*"
     }
+```
+If you want see TRUE promise when install [Swoole](http://php.net/manual/en/swoole.installation.php) extension.
+For more info visit the [Swoole website](https://www.swoole.co.uk/)
+> NOTE: TRUE promise work only in CLI mode
+
+## TRUE Promise
+```php
+use Streamcommon\Promise\PromiseCo;
+
+// be careful with this
+\Swoole\Runtime::enableCoroutine(); // IF YOU WANT REALY ASYNC
+
+$promise = PromiseCo::create(function (callable $resolve) {
+    $resolve(1);
+});
+$promise->then(function ($value) {
+    return $value + 1;
+})->then(function ($value) {
+    echo $value . PHP_EOL;
+});
 ```
 
 [Master branch]: https://github.com/streamcommon/promise/tree/master
