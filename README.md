@@ -34,7 +34,7 @@ use Streamcommon\Promise\PromiseCo;
 \Swoole\Runtime::enableCoroutine(); // IF YOU WANT REALY ASYNC
 
 $promise = PromiseCo::create(function (callable $resolve) {
-    $resolve(1);
+    $resolve(41);
 });
 $promise->then(function ($value) {
     return $value + 1;
@@ -45,7 +45,18 @@ $promise->then(function ($value) {
 
 ## Standard Promise
 ```php
+use Streamcommon\Promise\Promise;
 
+$promise = Promise::create(function (callable $resolve) {
+    $resolve(41);
+});
+$promise->then(function ($value) {
+    return $value + 1;
+});
+$promise->then(function ($value) {
+    echo $value . PHP_EOL;
+});
+$promise->wait(); // Sync promise execution
 ```
 
 [Master branch]: https://github.com/streamcommon/promise/tree/master
