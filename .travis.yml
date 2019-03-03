@@ -8,6 +8,9 @@ cache:
 php:
   - 7.2
 
+before_install:
+  - phpenv config-add ./test/travis/php.ini
+
 install:
   - composer install --no-interaction
 
