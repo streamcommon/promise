@@ -23,6 +23,7 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 } else {
     throw new \RuntimeException('File autoload.php not exists');
 }
+\Swoole\Runtime::enableCoroutine();
 
 $promise = PromiseCo::create(function (callable $resolve) {
     $resolve(55);
