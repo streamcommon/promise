@@ -35,10 +35,10 @@ All resulting `Promise` has `PromiseInterface::STATE_PENDING` state.
 ```php
     $promise = new Promise(function(callable $resolve, callable $reject));
     // OR
-    $promise = Promise::create($callabel(callable $resolve, callable $reject))
+    $promise = Promise::create(function(callable $resolve, callable $reject))
 ```
 
-When `$callabel($resolve, $reject)` executor finishes the job, it should call one of the functions:
+When `function($resolve, $reject)` executor finishes the job, it should call one of the functions:
 - `$resolve` to indicate that the job finished successfully and set `Promise` state to `PromiseInterface::STATE_FULFILLED`
 ```php
     $resolve = function ($value) {
