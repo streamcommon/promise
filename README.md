@@ -78,7 +78,7 @@ Similarly `PromiseInterface::reject()` creates an already executed promise with 
 ```
 It is similar to:
 ```php
-    $promise = new Promise(function(null, callable $reject) {
+    $promise = new Promise(function(callable $resolve, callable $reject) {
         $reject($value)
     });
 ```
