@@ -20,7 +20,7 @@
     "php-coveralls/php-coveralls": "^2.1.0"
   },
   "suggest": {
-    "ext-swoole": "Install extension(^4.2.13) for using PromiseCo"
+    "ext-swoole": "Install extension(^4.2.13) for using PromiseA"
   },
   "autoload": {
     "psr-4": {

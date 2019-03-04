@@ -13,22 +13,22 @@ declare(strict_types=1);
 namespace Streamcommon\Test\Promise;
 
 use PHPUnit\Framework\TestCase;
-use Streamcommon\Promise\Promise;
+use Streamcommon\Promise\PromiseA;
 use Streamcommon\Promise\Exception\RuntimeException;
 
 /**
- * Class PromiseTest
+ * Class PromiseATest
  *
  * @package Streamcommon\Test\Promise
  */
-class PromiseTest extends TestCase
+class PromiseATest extends TestCase
 {
     /**
      * Test sync promise
      */
     public function testPromise(): void
     {
-        $promise = Promise::create(function ($resolver) {
+        $promise = PromiseA::create(function ($resolver) {
             $resolver(41);
         });
         $promise->then(function ($value) {
@@ -37,7 +37,6 @@ class PromiseTest extends TestCase
         $promise->then(function ($value) {
             $this->assertEquals(42, $value);
         });
-        $promise->wait();
     }
 
     /**
@@ -45,11 +44,10 @@ class PromiseTest extends TestCase
      */
     public function testPromiseResolve(): void
     {
-        $promise = Promise::resolve(42);
+        $promise = PromiseA::resolve(42);
         $promise->then(function ($value) {
             $this->assertEquals(42, $value);
         });
-        $promise->wait();
     }
 
 
@@ -58,11 +56,10 @@ class PromiseTest extends TestCase
      */
     public function testPromiseReject(): void
     {
-        $promise = Promise::reject(42);
+        $promise = PromiseA::reject(42);
         $promise->then(null, function ($value) {
             $this->assertEquals(42, $value);
         });
-        $promise->wait();
     }
 
     /**
@@ -70,12 +67,11 @@ class PromiseTest extends TestCase
      */
     public function testPromiseThrow(): void
     {
-        $promise = Promise::create(function ($resolver) {
+        $promise = PromiseA::create(function ($resolver) {
             throw new RuntimeException();
         });
         $promise->then(null, function ($value) {
             $this->assertInstanceOf(RuntimeException::class, $value);
         });
-        $promise->wait();
     }
 }
