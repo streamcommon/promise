@@ -33,4 +33,28 @@ interface PromiseInterface
      * @see https://promisesaplus.com/#the-then-method
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface;
+
+    /**
+     * This method MUST create new promise instance
+     *
+     * @param callable $promise
+     * @return PromiseInterface
+     */
+    public static function create(callable $promise): PromiseInterface;
+
+    /**
+     * This method create new fulfilled promise with $value result
+     *
+     * @param mixed $value
+     * @return PromiseInterface
+     */
+    public static function resolve($value): PromiseInterface;
+
+    /**
+     * This method create new rejected promise with $value result
+     *
+     * @param mixed $value
+     * @return PromiseInterface
+     */
+    public static function reject($value): PromiseInterface;
 }

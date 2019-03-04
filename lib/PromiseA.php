@@ -16,14 +16,14 @@ use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
 use Throwable;
 
+use function extension_loaded;
+
 /**
- * Class Promise
+ * Class PromiseA
  *
- * @package Streamcommon\PromiseCo
- *
- * @todo what about free channel???
+ * @package Streamcommon\Promise
  */
-final class PromiseCo implements PromiseInterface
+final class PromiseA implements PromiseInterface
 {
     /** @var int */
     private $state = PromiseInterface::STATE_PENDING;
@@ -47,16 +47,16 @@ final class PromiseCo implements PromiseInterface
             try {
                 $resolve = function ($value) {
                     $this->setState(PromiseInterface::STATE_FULFILLED);
-                    $this->sequenceSet->push($value, 60);
+                    $this->setResult($value);
                 };
                 $reject = function ($value) {
                     $this->setState(PromiseInterface::STATE_REJECTED);
-                    $this->sequenceSet->push($value, 60);
+                    $this->setResult($value);
                 };
                 $promise($resolve, $reject);
             } catch (Throwable $exception) {
                 $this->setState(PromiseInterface::STATE_REJECTED);
-                $this->sequenceSet->push($exception, 60);
+                $this->setResult($exception);
             }
         }, $promise);
     }
@@ -65,11 +65,37 @@ final class PromiseCo implements PromiseInterface
      * This method create new promise instance
      *
      * @param callable $promise
-     * @return PromiseCo
+     * @return PromiseA
      */
-    public static function create(callable $promise): PromiseCo
+    public static function create(callable $promise): PromiseInterface
     {
         return new static($promise);
+    }
+
+    /**
+     * This method create new fulfilled promise with $value result
+     *
+     * @param mixed $value
+     * @return PromiseA
+     */
+    public static function resolve($value): PromiseInterface
+    {
+        return new static(function (callable $resolve) use ($value) {
+            $resolve($value);
+        });
+    }
+
+    /**
+     * This method create new rejected promise with $value result
+     *
+     * @param mixed $value
+     * @return PromiseA
+     */
+    public static function reject($value): PromiseInterface
+    {
+        return new static(function (callable $resolve, callable $reject) use ($value) {
+            $reject($value);
+        });
     }
 
     /**
@@ -77,16 +103,22 @@ final class PromiseCo implements PromiseInterface
      *
      * @param callable|null $onFulfilled
      * @param callable|null $onRejected
-     * @return PromiseInterface
+     * @return PromiseA
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
         Coroutine::create(function (array $callable) {
             list($onFulfilled, $onRejected) = $callable;
             Coroutine::defer(function () use ($onFulfilled, $onRejected) {
-                $value = $this->sequenceSet->pop();
-                $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
-                $this->sequenceSet->push($callable($value));
+                if (($value = $this->sequenceSet->pop()) !== null) {
+                    $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
+                    $value = $callable($value);
+                    if ($value !== null) {
+                        $this->setResult($value);
+                    } else {
+                        $this->sequenceSet->close();
+                    }
+                }
             });
         }, [$onFulfilled, $onRejected]);
         return $this;
@@ -103,6 +135,16 @@ final class PromiseCo implements PromiseInterface
     }
 
     /**
+     * Set resolved result
+     *
+     * @param mixed $value
+     */
+    private function setResult($value): void
+    {
+        $this->sequenceSet->push($value, 60);
+    }
+
+    /**
      * Promise is fulfilled
      *
      * @return bool
@@ -113,12 +155,11 @@ final class PromiseCo implements PromiseInterface
     }
 
     /**
-     * Promise is rejected
-     *
-     * @return bool
+     * Destructor
      */
-    private function isRejected(): bool
+    public function __destruct()
     {
-        return $this->state === PromiseInterface::STATE_REJECTED;
+        $this->sequenceSet->close();
+        unset($this->sequenceSet);
     }
 }

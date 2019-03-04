@@ -31,7 +31,7 @@ final class Promise implements PromiseInterface
     /** @var callable */
     private $promise;
     /** @var mixed */
-    private $value;
+    private $result;
 
     /**
      * Promise constructor.
@@ -45,14 +45,40 @@ final class Promise implements PromiseInterface
     }
 
     /**
-     * This method create new promise instance
+     * This method create new promise
      *
      * @param callable $promise
      * @return Promise
      */
-    public static function create(callable $promise): Promise
+    public static function create(callable $promise): PromiseInterface
     {
         return new static($promise);
+    }
+
+    /**
+     * This method create new fulfilled promise with $value result
+     *
+     * @param mixed $value
+     * @return Promise
+     */
+    public static function resolve($value): PromiseInterface
+    {
+        return new static(function (callable $resolve) use ($value) {
+            $resolve($value);
+        });
+    }
+
+    /**
+     * This method create new rejected promise with $value result
+     *
+     * @param mixed $value
+     * @return Promise
+     */
+    public static function reject($value): PromiseInterface
+    {
+        return new static(function (callable $resolve, callable $reject) use ($value) {
+            $reject($value);
+        });
     }
 
     /**
@@ -60,7 +86,7 @@ final class Promise implements PromiseInterface
      *
      * @param callable|null $onFulfilled
      * @param callable|null $onRejected
-     * @return PromiseInterface
+     * @return Promise
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
@@ -76,24 +102,24 @@ final class Promise implements PromiseInterface
         try {
             $resolve = function ($value) {
                 $this->setState(PromiseInterface::STATE_FULFILLED);
-                $this->value = $value;
+                $this->setResult($value);
             };
             $reject = function ($value) {
                 $this->setState(PromiseInterface::STATE_REJECTED);
-                $this->value = $value;
+                $this->setResult($value);
             };
             call_user_func_array($this->promise, [$resolve, $reject]);
         } catch (Throwable $exception) {
             $this->setState(PromiseInterface::STATE_REJECTED);
-            $this->value = $exception;
+            $this->result = $exception;
         }
-        while ($this->value !== null) {
-            $value = $this->value;
-            $this->value = null;
+        while ($this->result !== null && $this->sequenceSet->isEmpty() !== true) {
+            $value = $this->result;
+            $this->result = null;
             if (($callable = $this->sequenceSet->pop()) !== null) {
                 list($onFulfilled, $onRejected) = $callable;
                 $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
-                $this->value = $callable($value);
+                $this->setResult($callable($value));
             }
         }
         $this->sequenceSet->clear();
@@ -110,6 +136,16 @@ final class Promise implements PromiseInterface
     }
 
     /**
+     * Set resolved result
+     *
+     * @param mixed $value
+     */
+    private function setResult($value): void
+    {
+        $this->result = $value;
+    }
+
+    /**
      * Promise is fulfilled
      *
      * @return bool
@@ -120,12 +156,11 @@ final class Promise implements PromiseInterface
     }
 
     /**
-     * Promise is rejected
-     *
-     * @return bool
+     * Destructor
      */
-    private function isRejected(): bool
+    public function __destruct()
     {
-        return $this->state === PromiseInterface::STATE_REJECTED;
+        $this->sequenceSet->clear();
+        unset($this->sequenceSet);
     }
 }

@@ -10,7 +10,7 @@
  */
 declare(strict_types=1);
 
-use Streamcommon\Promise\PromiseCo;
+use Streamcommon\Promise\PromiseA;
 
 if (PHP_SAPI !== 'cli' || !extension_loaded('swoole')) {
     echo 'PromiseCo MUST running only in CLI mode with swoole extension' . PHP_EOL;
@@ -25,7 +25,7 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 }
 \Swoole\Runtime::enableCoroutine();
 
-$promise = PromiseCo::create(function (callable $resolve) {
+$promise = PromiseA::create(function (callable $resolve) {
     $resolve(41);
     echo 1 . PHP_EOL;
 });
@@ -39,7 +39,7 @@ $promise->then(function ($value) {
 });
 echo 3 . PHP_EOL;
 
-$promise = PromiseCo::create(function (callable $resolve) {
+$promise = PromiseA::create(function (callable $resolve) {
     $resolve(43);
     echo 5 . PHP_EOL;
 });
