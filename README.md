@@ -21,6 +21,9 @@ Or add into your `composer.json`:
         "streamcommon/promise": "*"
     }
 ```
+> If you want see TRUE promise then install [Swoole](http://php.net/manual/en/swoole.installation.php) extension. 
+> For more info visit the [Swoole repo](https://github.com/swoole/swoole-src)
+>> NOTE: TRUE promise work only in CLI mode
 
 ## Promise
 Promise is a library which provides [Promise/A+](https://github.com/promises-aplus/promises-spec) PHP implementation.
@@ -82,6 +85,26 @@ It is similar to:
         $reject($value)
     });
 ```
+## Sub promise
+When `function($resolve, $reject)` executor finishes the job, it can return `PromiseInterface`.
+```php
+    $promise = Promise::create(function (callable $resolve) {
+        $resolve(Promise::create(function (callable $subResolve) {
+            $subResolve(42);
+        }));
+    });
+```
+In this case, it will wait for the execution of sub promise.
+
+Method `PromiseInterface::then()` can return `PromiseInterface` to.
+```php
+    $promise->then(function ($value) {
+        return Promise::create(function (callable $resolve) use ($value) {
+            $resolve($value + 1);
+        });
+    });
+```
+For more info check [example](/example) scripts.
 
 ## Example
 
@@ -123,7 +146,48 @@ It is similar to:
         echo $value . PHP_EOL;
     });
 ```
+> Sub promise
+```php
+    use Streamcommon\Promise\Promise;
 
+    $promise = Promise::create(function (callable $resolve) {
+        $promise = Promise::create(function (callable $resolve) {
+            $resolve(41);
+        });
+        $promise->then(function ($value) use ($resolve) {
+            $resolve($value);
+        });
+        $promise->wait();
+    });
+    $promise->then(function ($value) {
+        return $value + 1;
+    });
+    $promise->then(function ($value) {
+        echo $value . PHP_EOL;
+    });
+    $promise->wait();
+```
+> Sub async promise
+```php
+    use Streamcommon\Promise\PromiseA;
+    
+    // be careful with this
+    \Swoole\Runtime::enableCoroutine(); // IF YOU WANT REALY ASYNC
+    
+    $promise = PromiseA::create(function (callable $resolve) {
+        $promise = PromiseA::create(function (callable $resolve) {
+            $resolve(41);
+        });
+        $promise->then(function ($value) use ($resolve) {
+            $resolve($value);
+        });
+    });
+    $promise->then(function ($value) {
+        return $value + 1;
+    })->then(function ($value) {
+        echo $value . PHP_EOL;
+    });
+```
 [Master branch]: https://github.com/streamcommon/promise/tree/master
 [Master branch image]: https://img.shields.io/badge/branch-master-blue.svg
 [Develop branch]: https://github.com/streamcommon/promise/tree/develop
