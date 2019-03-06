@@ -37,11 +37,13 @@ final class PromiseA implements PromiseInterface
      */
     public function __construct(callable $promise)
     {
+        // @codeCoverageIgnoreStart
         if (PHP_SAPI !== 'cli' || !extension_loaded('swoole')) {
             throw new Exception\RuntimeException(
                 'PromiseCo MUST running only in CLI mode with swoole extension'
             );
         }
+        // @codeCoverageIgnoreEnd
         $this->sequenceSet = new Channel();
         Coroutine::create(function (callable $promise) {
             try {

@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace Streamcommon\Test\Promise;
 
 use PHPUnit\Framework\TestCase;
-use Streamcommon\Promise\Promise;
+use Streamcommon\Promise\{Promise, PromiseInterface};
 use Streamcommon\Promise\Exception\RuntimeException;
 
 /**
@@ -72,6 +72,69 @@ class PromiseTest extends TestCase
     {
         $promise = Promise::create(function ($resolver) {
             throw new RuntimeException();
+        });
+        $promise->then(null, function ($value) {
+            $this->assertInstanceOf(RuntimeException::class, $value);
+        });
+        $promise->wait();
+    }
+
+    /**
+     * Test sub promise
+     */
+    public function testSubPromise(): void
+    {
+        $promise = Promise::create(function (callable $resolve) {
+            $promise = Promise::create(function (callable $resolve) {
+                $resolve(41);
+            });
+            $promise->then(function ($value) use ($resolve) {
+                $resolve($value);
+            });
+            $promise->wait();
+        });
+        $promise->then(function ($value) {
+            return Promise::create(function (callable $resolve) use ($value) {
+                $resolve($value + 1);
+            });
+        });
+        $promise->then(function ($value) {
+            return Promise::create(function (callable $resolve) use ($value) {
+                $resolve($value + 1);
+            })->then(function ($value) {
+                return $value + 1;
+            });
+        });
+        $promise->then(function ($value) {
+            $this->assertEquals(44, $value);
+        });
+        $promise->wait();
+    }
+
+    /**
+     * Test sub promise instance exception
+     */
+    public function testSubPromiseException(): void
+    {
+        $promise = Promise::create(function (callable $resolve) {
+            $resolve(new class implements PromiseInterface {
+                public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
+                {
+                }
+
+                public static function create(callable $promise): PromiseInterface
+                {
+                }
+
+                public static function resolve($value): PromiseInterface
+                {
+                }
+
+                public static function reject($value): PromiseInterface
+                {
+                }
+
+            });
         });
         $promise->then(null, function ($value) {
             $this->assertInstanceOf(RuntimeException::class, $value);
