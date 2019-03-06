@@ -25,22 +25,50 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 }
 \Swoole\Runtime::enableCoroutine();
 
+#############################################################
+
+#############################################################
 $promise = PromiseA::create(function (callable $resolve) {
-    $resolve(41);
+    $promise = PromiseA::create(function (callable $resolve) {
+        $resolve(41);
+    });
+    $promise->then(function ($value) use ($resolve) {
+        sleep(5); // check async
+        $resolve($value);
+    });
 });
 $promise->then(function ($value) {
-    sleep(3);
     return $value + 1;
 })->then(function ($value) {
     echo $value . PHP_EOL;
 });
+#############################################################
 
+#############################################################
 $promise = PromiseA::create(function (callable $resolve) {
-    $resolve(44);
+    $resolve(PromiseA::create(function (callable $resolve) {
+        $resolve(42);
+    }));
 });
 $promise->then(function ($value) {
-    sleep(1);
-    return $value - 1;
-})->then(function ($value) {
+    return $value + 1;
+});
+$promise->then(function ($value) {
     echo $value . PHP_EOL;
 });
+#############################################################
+
+#############################################################
+$promise = PromiseA::create(function (callable $resolve) {
+    $resolve(43);
+});
+$promise->then(function ($value) {
+    return PromiseA::create(function (callable $resolve) use ($value) {
+        sleep(3); // check async
+        $resolve($value + 1);
+    });
+});
+$promise->then(function ($value) {
+    echo $value . PHP_EOL;
+});
+#############################################################

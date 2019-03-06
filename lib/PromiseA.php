@@ -141,7 +141,16 @@ final class PromiseA implements PromiseInterface
      */
     private function setResult($value): void
     {
-        $this->sequenceSet->push($value, 60);
+        if ($value instanceof PromiseInterface) {
+            if (($value instanceof PromiseA) === false) {
+                throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
+            }
+            $value->then(function ($value) {
+                $this->setResult($value);
+            });
+        } else {
+            $this->sequenceSet->push($value, 60);
+        }
     }
 
     /**

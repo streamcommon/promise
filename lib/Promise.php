@@ -142,7 +142,17 @@ final class Promise implements PromiseInterface
      */
     private function setResult($value): void
     {
-        $this->result = $value;
+        if ($value instanceof PromiseInterface) {
+            if (($value instanceof Promise) === false) {
+                throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
+            }
+            $value->then(function ($value) {
+                $this->setResult($value);
+            });
+            $value->wait();
+        } else {
+            $this->result = $value;
+        }
     }
 
     /**
