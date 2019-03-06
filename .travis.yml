@@ -12,7 +12,6 @@ before_install:
   - pecl channel-update pecl.php.net
   - pecl install ds
   - printf "\n" | pecl install swoole
-  - phpenv config-add ./test/travis/php.ini
 
 install:
   - composer install --no-interaction
