@@ -10,6 +10,9 @@ This package provides [Promise/A+](https://github.com/promises-aplus/promises-sp
 
 [![Develop][Develop branch image]][Develop branch] [![Build Status][Develop image]][Develop] [![Coverage Status][Develop coverage image]][Develop coverage]
 
+## Future
+Full js Promise/A+ implementation, actually .then working incorrect.
+
 ## Installation
 Console run:
 ```console
