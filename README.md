@@ -118,11 +118,14 @@ For more info check [example](/example) scripts.
     $promise = Promise::create(function (callable $resolve) {
         $resolve(41);
     });
-    $promise->then(function ($value) {
+    $newPromise = $promise->then(function ($value) {
         return $value + 1;
     });
     $promise->then(function ($value) {
-        echo $value . PHP_EOL;
+        echo $value . ' === 41' . PHP_EOL;
+    });
+    $newPromise->then(function ($value) {
+        echo $value . ' === 42' . PHP_EOL;
     });
     $promise->wait(); // promise execution
 ```
@@ -154,19 +157,26 @@ For more info check [example](/example) scripts.
     use Streamcommon\Promise\Promise;
 
     $promise = Promise::create(function (callable $resolve) {
-        $promise = Promise::create(function (callable $resolve) {
-            $resolve(41);
-        });
-        $promise->then(function ($value) use ($resolve) {
-            $resolve($value);
-        });
-        $promise->wait();
+        $resolve(Promise::create(function (callable $resolve) {
+            $resolve(42);
+        }));
     });
-    $promise->then(function ($value) {
+    $newPromise = $promise->then(function ($value) {
         return $value + 1;
     });
+    $superNewPromise = $promise->then(function ($value) {
+        return Promise::create(function (callable $resolve) use ($value) {
+            $resolve($value + 2);
+        });
+    });
     $promise->then(function ($value) {
-        echo $value . PHP_EOL;
+        echo $value . ' === 42' . PHP_EOL;
+    });
+    $newPromise->then(function ($value) {
+        echo $value . ' === 43' . PHP_EOL;
+    });
+    $superNewPromise->then(function ($value) {
+        echo $value . ' === 44' . PHP_EOL;
     });
     $promise->wait();
 ```
