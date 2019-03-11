@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Streamcommon\Promise;
 
-use Ds\Queue as SequenceSet;
+use Ds\Queue as Sequence;
 use Throwable;
 
 use function call_user_func_array;
@@ -26,22 +26,22 @@ final class Promise implements PromiseInterface
 {
     /** @var int */
     private $state = PromiseInterface::STATE_PENDING;
-    /** @var SequenceSet */
-    private $sequenceSet;
+    /** @var Sequence */
+    private $sequence;
     /** @var callable */
-    private $promise;
+    private $executor;
     /** @var mixed */
     private $result;
 
     /**
      * Promise constructor.
      *
-     * @param callable $promise
+     * @param callable $executor
      */
-    public function __construct(callable $promise)
+    public function __construct(callable $executor)
     {
-        $this->promise = $promise;
-        $this->sequenceSet = new SequenceSet();
+        $this->executor = $executor;
+        $this->sequence = new Sequence();
     }
 
     /**
@@ -52,7 +52,7 @@ final class Promise implements PromiseInterface
      */
     public static function create(callable $promise): PromiseInterface
     {
-        return new static($promise);
+        return new self($promise);
     }
 
     /**
@@ -63,7 +63,7 @@ final class Promise implements PromiseInterface
      */
     public static function resolve($value): PromiseInterface
     {
-        return new static(function (callable $resolve) use ($value) {
+        return new self(function (callable $resolve) use ($value) {
             $resolve($value);
         });
     }
@@ -76,7 +76,7 @@ final class Promise implements PromiseInterface
      */
     public static function reject($value): PromiseInterface
     {
-        return new static(function (callable $resolve, callable $reject) use ($value) {
+        return new self(function (callable $resolve, callable $reject) use ($value) {
             $reject($value);
         });
     }
@@ -90,8 +90,19 @@ final class Promise implements PromiseInterface
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
-        $this->sequenceSet->push([$onFulfilled, $onRejected]);
-        return $this;
+        $promise = self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
+            $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
+            if (is_callable($callable) === false) {
+                return;
+            }
+            try {
+                $resolve($callable($this->result));
+            } catch (Throwable $error) {
+                $reject($error);
+            }
+        });
+        $this->sequence->push($promise);
+        return $promise;
     }
 
     /**
@@ -108,21 +119,18 @@ final class Promise implements PromiseInterface
                 $this->setState(PromiseInterface::STATE_REJECTED);
                 $this->setResult($value);
             };
-            call_user_func_array($this->promise, [$resolve, $reject]);
+            call_user_func_array($this->executor, [$resolve, $reject]);
         } catch (Throwable $exception) {
             $this->setState(PromiseInterface::STATE_REJECTED);
             $this->result = $exception;
         }
-        while ($this->result !== null && $this->sequenceSet->isEmpty() !== true) {
-            $value = $this->result;
-            $this->result = null;
-            if (($callable = $this->sequenceSet->pop()) !== null) {
-                list($onFulfilled, $onRejected) = $callable;
-                $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
-                $this->setResult($callable($value));
+        while ($this->sequence->isEmpty() === false) {
+            $promise = $this->sequence->pop();
+            if ($promise instanceof Promise) {
+                $promise->wait();
             }
         }
-        $this->sequenceSet->clear();
+        $this->sequence->clear();
     }
 
     /**
@@ -146,9 +154,10 @@ final class Promise implements PromiseInterface
             if (($value instanceof Promise) === false) {
                 throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
             }
-            $value->then(function ($value) {
+            $callable = function ($value) {
                 $this->setResult($value);
-            });
+            };
+            $value->then($callable, $callable);
             $value->wait();
         } else {
             $this->result = $value;
@@ -170,7 +179,7 @@ final class Promise implements PromiseInterface
      */
     public function __destruct()
     {
-        $this->sequenceSet->clear();
-        unset($this->sequenceSet);
+        $this->sequence->clear();
+        unset($this->sequence);
     }
 }

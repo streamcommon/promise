@@ -19,14 +19,35 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 } else {
     throw new \RuntimeException('File autoload.php not exists');
 }
-
-$promise = Promise::create(function (callable $resolve) {
+########### INIT ##############
+$promise1 = Promise::create(function (callable $resolve) {
     $resolve(41);
 });
-$promise->then(function ($value) {
+$promise2 = $promise1->then(function ($value) {
     return $value + 1;
 });
-$promise->then(function ($value) {
-    echo $value . PHP_EOL;
+$promise3 = $promise1->then(function ($value) {
+    throw new \Exception('error');
 });
-$promise->wait();
+$promise4 = $promise1->then(function ($value) {
+    return Promise::create(function (callable $resolver) use ($value) {
+        $resolver($value + 5);
+    });
+});
+########### INIT ##############
+
+########### RESULT ##############
+$promise1->then(function ($value) {
+    echo $value . ' === 41' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 42' . PHP_EOL;
+});
+$promise3->then(null, function ($error) {
+    echo 'instanceof Throwable === ' . ($error instanceof Throwable) . PHP_EOL;
+});
+$promise4->then(function ($value) {
+    echo $value . ' === 46' . PHP_EOL;
+});
+########### RESULT ##############
+$promise1->wait();

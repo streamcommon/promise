@@ -31,11 +31,20 @@ class PromiseTest extends TestCase
         $promise = Promise::create(function ($resolver) {
             $resolver(41);
         });
-        $promise->then(function ($value) {
+        $promise2 = $promise->then(function ($value) {
             return $value + 1;
         });
+        $promise3 = $promise->then(function () {
+
+        });
         $promise->then(function ($value) {
-            $this->assertEquals(42, $value);
+            $this->assertEquals(41, $value);
+        });
+        $promise2->then(function ($value) {
+            $this->assertEquals(43, $value);
+        });
+        $promise3->then(function ($value) {
+            $this->assertNull($value);
         });
         $promise->wait();
     }
@@ -93,12 +102,12 @@ class PromiseTest extends TestCase
             });
             $promise->wait();
         });
-        $promise->then(function ($value) {
+        $promise2 = $promise->then(function ($value) {
             return Promise::create(function (callable $resolve) use ($value) {
                 $resolve($value + 1);
             });
         });
-        $promise->then(function ($value) {
+        $promise3 = $promise->then(function ($value) {
             return Promise::create(function (callable $resolve) use ($value) {
                 $resolve($value + 1);
             })->then(function ($value) {
@@ -106,7 +115,13 @@ class PromiseTest extends TestCase
             });
         });
         $promise->then(function ($value) {
-            $this->assertEquals(44, $value);
+            $this->assertEquals(41, $value);
+        });
+        $promise2->then(function ($value) {
+            $this->assertEquals(42, $value);
+        });
+        $promise3->then(function ($value) {
+            $this->assertEquals(43, $value);
         });
         $promise->wait();
     }
