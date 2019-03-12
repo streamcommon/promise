@@ -33,28 +33,37 @@ $promise = PromiseA::create(function (callable $resolve) {
         $resolve(41);
     });
     $promise->then(function ($value) use ($resolve) {
-        sleep(5); // check async
+        sleep(1);
         $resolve($value);
     });
 });
-$promise->then(function ($value) {
+$promise2 = $promise->then(function ($value) {
+    sleep(3);
     return $value + 1;
-})->then(function ($value) {
-    echo $value . PHP_EOL;
+});
+$promise->then(function ($value) {
+    echo $value . ' === 41' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 42' . PHP_EOL;
 });
 #############################################################
 
 #############################################################
 $promise = PromiseA::create(function (callable $resolve) {
     $resolve(PromiseA::create(function (callable $resolve) {
+        sleep(3);
         $resolve(42);
     }));
 });
-$promise->then(function ($value) {
+$promise2 = $promise->then(function ($value) {
     return $value + 1;
 });
 $promise->then(function ($value) {
-    echo $value . PHP_EOL;
+    echo $value . ' === 42' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 43' . PHP_EOL;
 });
 #############################################################
 
@@ -62,13 +71,16 @@ $promise->then(function ($value) {
 $promise = PromiseA::create(function (callable $resolve) {
     $resolve(43);
 });
-$promise->then(function ($value) {
+$promise2 = $promise->then(function ($value) {
+    sleep(1);
     return PromiseA::create(function (callable $resolve) use ($value) {
-        sleep(3); // check async
         $resolve($value + 1);
     });
 });
 $promise->then(function ($value) {
-    echo $value . PHP_EOL;
+    echo $value . ' === 43' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 44' . PHP_EOL;
 });
 #############################################################

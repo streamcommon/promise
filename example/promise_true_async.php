@@ -25,22 +25,37 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 }
 \Swoole\Runtime::enableCoroutine();
 
-$promise = PromiseA::create(function (callable $resolve) {
+########### INIT ##############
+$promise1 = PromiseA::create(function (callable $resolve) {
     $resolve(41);
 });
-$promise->then(function ($value) {
-    sleep(3);
+$promise2 = $promise1->then(function ($value) {
+    sleep(2);
     return $value + 1;
-})->then(function ($value) {
-    echo $value . PHP_EOL;
 });
-
-$promise = PromiseA::create(function (callable $resolve) {
-    $resolve(44);
-});
-$promise->then(function ($value) {
+$promise3 = $promise1->then(function ($value) {
     sleep(1);
-    return $value - 1;
-})->then(function ($value) {
-    echo $value . PHP_EOL;
+    throw new \Exception('error');
 });
+$promise4 = $promise1->then(function ($value) {
+    return PromiseA::create(function (callable $resolver) use ($value) {
+        sleep(3);
+        $resolver($value + 5);
+    });
+});
+########### INIT ##############
+
+########### RESULT ##############
+$promise1->then(function ($value) {
+    echo $value . ' === 41' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 42' . PHP_EOL;
+});
+$promise3->then(null, function ($error) {
+    echo 'instanceof Throwable === ' . ($error instanceof Throwable) . PHP_EOL;
+});
+$promise4->then(function ($value) {
+    echo $value . ' === 46' . PHP_EOL;
+});
+########### RESULT ##############

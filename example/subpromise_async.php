@@ -34,37 +34,51 @@ $promise = PromiseA::create(function (callable $resolve) {
         $resolve($value);
     });
 });
-$promise->then(function ($value) {
+$promise2 = $promise->then(function ($value) {
+    sleep(3);
     return $value + 1;
-})->then(function ($value) {
-    echo $value . PHP_EOL;
+});
+$promise->then(function ($value) {
+    echo $value . ' === 41' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 42' . PHP_EOL;
 });
 #############################################################
 
 #############################################################
 $promise = PromiseA::create(function (callable $resolve) {
     $resolve(PromiseA::create(function (callable $resolve) {
+        sleep(2);
         $resolve(42);
     }));
 });
-$promise->then(function ($value) {
+$promise2 = $promise->then(function ($value) {
     return $value + 1;
 });
 $promise->then(function ($value) {
-    echo $value . PHP_EOL;
+    sleep(1);
+    echo $value . ' === 42' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 43' . PHP_EOL;
 });
 #############################################################
 
 #############################################################
 $promise = PromiseA::create(function (callable $resolve) {
+    sleep(1);
     $resolve(43);
 });
-$promise->then(function ($value) {
+$promise2 = $promise->then(function ($value) {
     return PromiseA::create(function (callable $resolve) use ($value) {
         $resolve($value + 1);
     });
 });
 $promise->then(function ($value) {
-    echo $value . PHP_EOL;
+    echo $value . ' === 43' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 44' . PHP_EOL;
 });
 #############################################################
