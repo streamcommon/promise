@@ -37,7 +37,7 @@
     "cs-fix": "phpcbf",
     "license-check": "docheader check lib/ test/ example/",
     "phpstan": "phpstan analyze -l max -c phpstan.neon ./lib ./example",
-    "phpunit": "phpunit --colors=always --coverage-html ./html",
+    "phpunit": "phpunit --colors=always",
     "phpunit-coverage": "phpunit --colors=always --coverage-clover clover.xml",
     "coveralls": "php-coveralls -v"
   }
