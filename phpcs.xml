@@ -3,4 +3,5 @@
     <rule ref="./vendor/streamcommon/coding-standard/ruleset.xml"/>
     <file>example</file>
     <file>lib</file>
+    <file>test</file>
 </ruleset>
