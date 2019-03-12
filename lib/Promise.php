@@ -91,8 +91,12 @@ final class Promise implements PromiseInterface
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
         $promise = self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
+            if ($this->state === PromiseInterface::STATE_PENDING) {
+                $this->wait();
+            }
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
             if (is_callable($callable) === false) {
+                $resolve($this->result);
                 return;
             }
             try {
