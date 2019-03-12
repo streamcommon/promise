@@ -34,8 +34,7 @@ class PromiseTest extends TestCase
         $promise2 = $promise->then(function ($value) {
             return $value + 1;
         });
-        $promise3 = $promise->then(function () {
-        });
+        $promise3 = $promise->then();
         $promise->then(function ($value) {
             $this->assertEquals(41, $value);
         });
@@ -43,7 +42,7 @@ class PromiseTest extends TestCase
             $this->assertEquals(43, $value);
         });
         $promise3->then(function ($value) {
-            $this->assertNull($value);
+            $this->assertEquals(41, $value);
         });
         $promise->wait();
     }
