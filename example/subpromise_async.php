@@ -67,18 +67,20 @@ $promise2->then(function ($value) {
 
 #############################################################
 $promise = PromiseA::create(function (callable $resolve) {
-    sleep(1);
     $resolve(43);
 });
 $promise2 = $promise->then(function ($value) {
+    sleep(1);
     return PromiseA::create(function (callable $resolve) use ($value) {
         $resolve($value + 1);
+    })->then(function ($value) {
+        return $value + 1;
     });
 });
 $promise->then(function ($value) {
     echo $value . ' === 43' . PHP_EOL;
 });
 $promise2->then(function ($value) {
-    echo $value . ' === 44' . PHP_EOL;
+    echo $value . ' === 45' . PHP_EOL;
 });
 #############################################################

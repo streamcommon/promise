@@ -119,6 +119,7 @@ final class PromiseA implements PromiseInterface
             $this->channel->push($value, $this::$timeout);
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
             if (is_callable($callable) === false) {
+                $resolve($value);
                 return;
             }
             try {
