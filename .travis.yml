@@ -12,6 +12,7 @@ before_install:
   - pecl channel-update pecl.php.net
   - pecl install ds
   - printf "\n" | pecl install swoole
+  - phpdismod xdebug
 
 install:
   - composer install --no-interaction
