@@ -3,7 +3,7 @@
 [![Swoole >= 4.2][Swoole image]](https://github.com/swoole/swoole-src)
 [![Latest Stable Version](https://poser.pugx.org/streamcommon/promise/v/stable)](https://packagist.org/packages/streamcommon/promise)
 [![Total Downloads](https://poser.pugx.org/streamcommon/promise/downloads)](https://packagist.org/packages/streamcommon/promise)
-[![License](https://poser.pugx.org/streamcommon/promise/license)](./LICENSE)
+[![License][License image]](./LICENSE)
 
 This package provides [Promise/A+](https://github.com/promises-aplus/promises-spec) PHP implementation.
 
@@ -202,6 +202,7 @@ For more info check [example](/example) scripts.
 ```
 [PHP image]: https://img.shields.io/badge/php-%3E%3D%207.2-blue.svg
 [Swoole image]: https://img.shields.io/badge/swoole-%3E%3D%204.2-blue.svg
+[License image]: https://img.shields.io/badge/license-BSD%203--Clause-blue.svg
 [Master branch]: https://github.com/streamcommon/promise/tree/master
 [Master branch image]: https://img.shields.io/badge/branch-master-blue.svg
 [Develop branch]: https://github.com/streamcommon/promise/tree/develop
