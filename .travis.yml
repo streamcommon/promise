@@ -10,6 +10,7 @@ php:
 
 before_install:
   - pecl channel-update pecl.php.net
+  - pecl install pcov
   - pecl install ds
   - printf "\n" | pecl install swoole
   - phpenv config-rm xdebug.ini

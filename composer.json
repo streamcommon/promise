@@ -12,6 +12,7 @@
     "ext-ds": "^1.2.8"
   },
   "require-dev": {
+    "ext-pcov": "^1.0.0",
     "ext-swoole": "^4.2.13",
     "streamcommon/coding-standard": "^1.0.0",
     "malukenho/docheader": "^0.1.7",
