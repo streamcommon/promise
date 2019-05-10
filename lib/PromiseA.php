@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of the Common package, a StreamCommon open software project.
+ * This file is part of the Promise package, a StreamCommon open software project.
  *
  * @copyright (c) 2019 StreamCommon Team.
  * @see https://github.com/streamcommon/promise
