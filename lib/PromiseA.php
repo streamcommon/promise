@@ -14,7 +14,6 @@ namespace Streamcommon\Promise;
 
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
-use Swoole\Event;
 use Throwable;
 
 use function extension_loaded;
@@ -130,14 +129,6 @@ final class PromiseA implements PromiseInterface
             }
         });
         return $promise;
-    }
-
-    /**
-     * Expect promise
-     */
-    public function wait(): void
-    {
-        Event::wait();
     }
 
     /**

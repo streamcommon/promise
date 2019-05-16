@@ -44,7 +44,6 @@ class PromiseATest extends TestCase
         $promise3->then(function ($value) {
             $this->assertNull($value);
         });
-        $promise->wait();
     }
 
     /**

@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use Streamcommon\Promise\PromiseA;
+use Swoole\Runtime;
 
 if (PHP_SAPI !== 'cli' || !extension_loaded('swoole')) {
     echo 'PromiseCo MUST running only in CLI mode with swoole extension' . PHP_EOL;
@@ -23,7 +24,7 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 } else {
     throw new \RuntimeException('File autoload.php not exists');
 }
-\Swoole\Runtime::enableCoroutine();
+Runtime::enableCoroutine();
 
 ########### INIT ##############
 $promise1 = PromiseA::create(function (callable $resolve) {

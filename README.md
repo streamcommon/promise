@@ -200,6 +200,16 @@ For more info check [example](/example) scripts.
         echo $value . PHP_EOL;
     });
 ```
+> If use PromiseA promise with `daemon|cycle|loop` you must use `Swoole\Runtime::wait()`
+```php
+    \Swoole\Runtime::enableCoroutine();
+    while (true) {
+        ///
+        Some code with PromiseA
+        ///
+        \Swoole\Runtime::wait();
+    }
+```
 [PHP image]: https://img.shields.io/badge/php-%3E%3D%207.2-blue.svg
 [Swoole image]: https://img.shields.io/badge/swoole-%3E%3D%204.2-blue.svg
 [Master branch]: https://github.com/streamcommon/promise/tree/master
