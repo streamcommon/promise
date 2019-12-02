@@ -1,0 +1,9 @@
+includes:
+    - vendor/phpstan/phpstan/conf/config.levelmax.neon
+
+parameters:
+    ignoreErrors:
+        -
+            message: "#Parameter \\#1 $var of function count expects array|Countable, iterable given.#"
+            count: 1
+            path: lib/PromiseA.php

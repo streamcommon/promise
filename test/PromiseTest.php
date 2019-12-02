@@ -25,10 +25,12 @@ class PromiseTest extends TestCase
 {
     /**
      * Test sync promise
+     *
+     * @return void
      */
     public function testPromise(): void
     {
-        $promise = Promise::create(function ($resolver) {
+        $promise  = Promise::create(function ($resolver) {
             $resolver(41);
         });
         $promise2 = $promise->then(function ($value) {
@@ -49,6 +51,8 @@ class PromiseTest extends TestCase
 
     /**
      * Test sync promise
+     *
+     * @return void
      */
     public function testPromiseResolve(): void
     {
@@ -62,6 +66,8 @@ class PromiseTest extends TestCase
 
     /**
      * Test sync promise
+     *
+     * @return void
      */
     public function testPromiseReject(): void
     {
@@ -74,6 +80,8 @@ class PromiseTest extends TestCase
 
     /**
      * Test throw
+     *
+     * @return void
      */
     public function testPromiseThrow(): void
     {
@@ -88,10 +96,12 @@ class PromiseTest extends TestCase
 
     /**
      * Test sub promise
+     *
+     * @return void
      */
     public function testSubPromise(): void
     {
-        $promise = Promise::create(function (callable $resolve) {
+        $promise  = Promise::create(function (callable $resolve) {
             $promise = Promise::create(function (callable $resolve) {
                 $resolve(41);
             });
@@ -126,25 +136,48 @@ class PromiseTest extends TestCase
 
     /**
      * Test sub promise instance exception
+     *
+     * @return void
      */
     public function testSubPromiseException(): void
     {
         $promise = Promise::create(function (callable $resolve) {
             $resolve(new class implements PromiseInterface {
+                /**
+                 * @param callable|null $onFulfilled
+                 * @param callable|null $onRejected
+                 * @return PromiseInterface
+                 */
                 public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
                 {
+                    return $this;
                 }
 
+                /**
+                 * @param callable $promise
+                 * @return PromiseInterface
+                 */
                 public static function create(callable $promise): PromiseInterface
                 {
+                    return new self();
                 }
 
+                /**
+                 * @param mixed $value
+                 * @return PromiseInterface
+                 */
                 public static function resolve($value): PromiseInterface
                 {
+                    return new self();
                 }
 
+                /**
+                 * @param mixed $value
+                 * @return PromiseInterface
+                 */
                 public static function reject($value): PromiseInterface
                 {
+                    return new self();
                 }
 
             });

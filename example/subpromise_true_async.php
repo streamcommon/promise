@@ -29,7 +29,7 @@ Runtime::enableCoroutine();
 #############################################################
 
 #############################################################
-$promise = PromiseA::create(function (callable $resolve) {
+$promise  = PromiseA::create(function (callable $resolve) {
     $promise = PromiseA::create(function (callable $resolve) {
         $resolve(41);
     });
@@ -51,7 +51,7 @@ $promise2->then(function ($value) {
 #############################################################
 
 #############################################################
-$promise = PromiseA::create(function (callable $resolve) {
+$promise  = PromiseA::create(function (callable $resolve) {
     $resolve(PromiseA::create(function (callable $resolve) {
         sleep(3);
         $resolve(42);
@@ -69,7 +69,7 @@ $promise2->then(function ($value) {
 #############################################################
 
 #############################################################
-$promise = PromiseA::create(function (callable $resolve) {
+$promise  = PromiseA::create(function (callable $resolve) {
     $resolve(43);
 });
 $promise2 = $promise->then(function ($value) {

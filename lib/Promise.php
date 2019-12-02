@@ -91,11 +91,11 @@ final class Promise implements PromiseInterface
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
         $promise = self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
-            if ($this->state === PromiseInterface::STATE_PENDING) {
+            if ($this->state == PromiseInterface::STATE_PENDING) {
                 $this->wait();
             }
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
-            if (is_callable($callable) === false) {
+            if (!is_callable($callable)) {
                 $resolve($this->result);
                 return;
             }
@@ -111,6 +111,8 @@ final class Promise implements PromiseInterface
 
     /**
      * Expect promise
+     *
+     * @return void
      */
     public function wait(): void
     {
@@ -119,7 +121,7 @@ final class Promise implements PromiseInterface
                 $this->setState(PromiseInterface::STATE_FULFILLED);
                 $this->setResult($value);
             };
-            $reject = function ($value) {
+            $reject  = function ($value) {
                 $this->setState(PromiseInterface::STATE_REJECTED);
                 $this->setResult($value);
             };
@@ -128,7 +130,7 @@ final class Promise implements PromiseInterface
             $this->setState(PromiseInterface::STATE_REJECTED);
             $this->result = $exception;
         }
-        while ($this->sequence->isEmpty() === false) {
+        while (!$this->sequence->isEmpty()) {
             $promise = $this->sequence->pop();
             if ($promise instanceof Promise) {
                 $promise->wait();
@@ -140,7 +142,8 @@ final class Promise implements PromiseInterface
     /**
      * Change promise state
      *
-     * @param int $state
+     * @param integer $state
+     * @return void
      */
     private function setState(int $state): void
     {
@@ -151,11 +154,12 @@ final class Promise implements PromiseInterface
      * Set resolved result
      *
      * @param mixed $value
+     * @return void
      */
     private function setResult($value): void
     {
         if ($value instanceof PromiseInterface) {
-            if (($value instanceof Promise) === false) {
+            if (!$value instanceof Promise) {
                 throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
             }
             $callable = function ($value) {
@@ -171,11 +175,11 @@ final class Promise implements PromiseInterface
     /**
      * Promise is fulfilled
      *
-     * @return bool
+     * @return boolean
      */
     private function isFulfilled(): bool
     {
-        return $this->state === PromiseInterface::STATE_FULFILLED;
+        return $this->state == PromiseInterface::STATE_FULFILLED;
     }
 
     /**

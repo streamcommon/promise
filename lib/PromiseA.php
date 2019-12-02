@@ -17,6 +17,8 @@ use Swoole\Coroutine\Channel;
 use Throwable;
 
 use function extension_loaded;
+use function count;
+use function ksort;
 use const PHP_SAPI;
 
 /**
@@ -26,8 +28,6 @@ use const PHP_SAPI;
  */
 final class PromiseA implements PromiseInterface
 {
-    /** @var int chane wait timeout in seconds  */
-    public static $timeout = 30;
     /** @var int */
     private $state = PromiseInterface::STATE_PENDING;
     /** @var Channel */
@@ -56,7 +56,7 @@ final class PromiseA implements PromiseInterface
                     $this->setState(PromiseInterface::STATE_FULFILLED);
                     $this->setResult($value);
                 };
-                $reject = function ($value) {
+                $reject  = function ($value) {
                     $this->setState(PromiseInterface::STATE_REJECTED);
                     $this->setResult($value);
                 };
@@ -114,27 +114,59 @@ final class PromiseA implements PromiseInterface
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
-        $promise = self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
-            $value = $this->channel->pop($this::$timeout);
-            $this->channel->push($value, $this::$timeout);
+        return self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
+            $result = $this->channel->pop();
+            $this->channel->push($result);
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
-            if (is_callable($callable) === false) {
-                $resolve($value);
+            if (!is_callable($callable)) {
+                $resolve($result);
                 return;
             }
             try {
-                $resolve($callable($value));
+                $resolve($callable($result));
             } catch (Throwable $error) {
                 $reject($error);
             }
         });
-        return $promise;
+    }
+
+    /**
+     * Returns a new promise when all promises are change stage
+     *
+     * @param iterable $promises
+     * @return PromiseA
+     */
+    public static function all(iterable $promises): PromiseInterface
+    {
+        return self::create(function (callable $resolve) use ($promises) {
+            $ticks   = count($promises);
+            $channel = new Channel($ticks);
+            $result  = [];
+            foreach ($promises as $key => $promise) {
+                if ($promise instanceof PromiseA) {
+                    $channel->close();
+                    throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
+                }
+                $promise->then(function ($value) use ($key, &$result, $channel) {
+                    $result[$key] = $value;
+                    $channel->push(true);
+                    return $value;
+                });
+            }
+            while ($ticks--) {
+                $channel->pop();
+            }
+            $channel->close();
+            ksort($result);
+            $resolve($result);
+        });
     }
 
     /**
      * Change promise state
      *
-     * @param int $state
+     * @param integer $state
+     * @return void
      */
     private function setState(int $state): void
     {
@@ -145,11 +177,12 @@ final class PromiseA implements PromiseInterface
      * Set resolved result
      *
      * @param mixed $value
+     * @return void
      */
     private function setResult($value): void
     {
         if ($value instanceof PromiseInterface) {
-            if (($value instanceof PromiseA) === false) {
+            if (!$value instanceof PromiseA) {
                 throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
             }
             $callable = function ($value) {
@@ -158,18 +191,18 @@ final class PromiseA implements PromiseInterface
             $value->then($callable, $callable);
         } else {
             $this->result = $value;
-            $this->channel->push($this->result, $this::$timeout);
+            $this->channel->push($this->result);
         }
     }
 
     /**
      * Promise is fulfilled
      *
-     * @return bool
+     * @return boolean
      */
     private function isFulfilled(): bool
     {
-        return $this->state === PromiseInterface::STATE_FULFILLED;
+        return $this->state == PromiseInterface::STATE_FULFILLED;
     }
 
     /**

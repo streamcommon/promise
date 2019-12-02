@@ -19,15 +19,15 @@ namespace Streamcommon\Promise;
  */
 interface PromiseInterface
 {
-    const STATE_PENDING = 1;
+    const STATE_PENDING   = 1;
     const STATE_FULFILLED = 0;
-    const STATE_REJECTED = -1;
+    const STATE_REJECTED  = -1;
 
     /**
      * It be called after promise change stage
      *
      * @param callable|null $onFulfilled called after promise is fulfilled
-     * @param callable|null $onRejected called after promise is rejected
+     * @param callable|null $onRejected  called after promise is rejected
      * @return PromiseInterface
      *
      * @see https://promisesaplus.com/#the-then-method

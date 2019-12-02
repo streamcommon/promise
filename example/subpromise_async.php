@@ -26,7 +26,7 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 #############################################################
 
 #############################################################
-$promise = PromiseA::create(function (callable $resolve) {
+$promise  = PromiseA::create(function (callable $resolve) {
     $promise = PromiseA::create(function (callable $resolve) {
         $resolve(41);
     });
@@ -47,7 +47,7 @@ $promise2->then(function ($value) {
 #############################################################
 
 #############################################################
-$promise = PromiseA::create(function (callable $resolve) {
+$promise  = PromiseA::create(function (callable $resolve) {
     $resolve(PromiseA::create(function (callable $resolve) {
         sleep(2);
         $resolve(42);
@@ -66,7 +66,7 @@ $promise2->then(function ($value) {
 #############################################################
 
 #############################################################
-$promise = PromiseA::create(function (callable $resolve) {
+$promise  = PromiseA::create(function (callable $resolve) {
     $resolve(43);
 });
 $promise2 = $promise->then(function ($value) {

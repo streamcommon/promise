@@ -14,7 +14,7 @@
   "require-dev": {
     "ext-pcov": "^1.0.0",
     "ext-swoole": "^4.2.13",
-    "streamcommon/coding-standard": "^1.0.0",
+    "streamcommon/coding-standard": "dev-master",
     "malukenho/docheader": "^0.1.7",
     "phpstan/phpstan": "^0.11.2",
     "phpunit/phpunit": "^8.0",
@@ -37,7 +37,7 @@
     "cs-check": "phpcs",
     "cs-fix": "phpcbf",
     "license-check": "docheader check lib/ test/ example/",
-    "phpstan": "phpstan analyze -l max ./lib ./example",
+    "phpstan": "phpstan analyze -c phpstan.neon ./lib ./example",
     "phpunit": "phpunit --colors=always",
     "phpunit-coverage": "phpunit --colors=always --coverage-clover clover.xml",
     "coveralls": "php-coveralls -v"

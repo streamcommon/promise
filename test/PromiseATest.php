@@ -15,6 +15,7 @@ namespace Streamcommon\Test\Promise;
 use PHPUnit\Framework\TestCase;
 use Streamcommon\Promise\{PromiseA, PromiseInterface};
 use Streamcommon\Promise\Exception\RuntimeException;
+use Swoole\Coroutine\Channel;
 
 /**
  * Class PromiseATest
@@ -25,10 +26,12 @@ class PromiseATest extends TestCase
 {
     /**
      * Test sync promise
+     *
+     * @return void
      */
     public function testPromise(): void
     {
-        $promise = PromiseA::create(function ($resolver) {
+        $promise  = PromiseA::create(function ($resolver) {
             $resolver(41);
         });
         $promise2 = $promise->then(function ($value) {
@@ -48,6 +51,8 @@ class PromiseATest extends TestCase
 
     /**
      * Test sync promise
+     *
+     * @return void
      */
     public function testPromiseResolve(): void
     {
@@ -60,6 +65,8 @@ class PromiseATest extends TestCase
 
     /**
      * Test sync promise
+     *
+     * @return void
      */
     public function testPromiseReject(): void
     {
@@ -71,6 +78,8 @@ class PromiseATest extends TestCase
 
     /**
      * Test throw
+     *
+     * @return void
      */
     public function testPromiseThrow(): void
     {
@@ -84,10 +93,12 @@ class PromiseATest extends TestCase
 
     /**
      * Test sub promise
+     *
+     * @return void
      */
     public function testSubPromise(): void
     {
-        $promise = PromiseA::create(function (callable $resolve) {
+        $promise  = PromiseA::create(function (callable $resolve) {
             $promise = PromiseA::create(function (callable $resolve) {
                 $resolve(41);
             });
@@ -120,25 +131,48 @@ class PromiseATest extends TestCase
 
     /**
      * Test sub promise instance exception
+     *
+     * @return void
      */
     public function testSubPromiseException(): void
     {
         $promise = PromiseA::create(function (callable $resolve) {
             $resolve(new class implements PromiseInterface {
+                /**
+                 * @param callable|null $onFulfilled
+                 * @param callable|null $onRejected
+                 * @return PromiseInterface
+                 */
                 public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
                 {
+                    return $this;
                 }
 
+                /**
+                 * @param callable $promise
+                 * @return PromiseInterface
+                 */
                 public static function create(callable $promise): PromiseInterface
                 {
+                    return new self();
                 }
 
+                /**
+                 * @param mixed $value
+                 * @return PromiseInterface
+                 */
                 public static function resolve($value): PromiseInterface
                 {
+                    return new self();
                 }
 
+                /**
+                 * @param mixed $value
+                 * @return PromiseInterface
+                 */
                 public static function reject($value): PromiseInterface
                 {
+                    return new self();
                 }
 
             });
