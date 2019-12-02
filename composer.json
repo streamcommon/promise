@@ -18,7 +18,8 @@
     "malukenho/docheader": "^0.1.7",
     "phpstan/phpstan": "^0.11.2",
     "phpunit/phpunit": "^8.0",
-    "php-coveralls/php-coveralls": "^2.1.0"
+    "php-coveralls/php-coveralls": "^2.1.0",
+    "ocramius/package-versions": "<1.5.0"
   },
   "suggest": {
     "ext-swoole": "Install extension(^4.2.13) for using PromiseA"
