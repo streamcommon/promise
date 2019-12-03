@@ -143,7 +143,7 @@ final class PromiseA implements PromiseInterface
             $channel = new Channel($ticks);
             $result  = [];
             foreach ($promises as $key => $promise) {
-                if ($promise instanceof PromiseA) {
+                if (!$promise instanceof PromiseA) {
                     $channel->close();
                     throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
                 }
