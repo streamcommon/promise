@@ -18,6 +18,8 @@ use const PHP_SAPI;
 /**
  * Class Factory
  * @package Streamcommon\Promise
+ *
+ * @codeCoverageIgnore
  */
 class Factory
 {
