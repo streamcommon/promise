@@ -114,7 +114,9 @@ final class PromiseA implements PromiseInterface
     {
         return self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
             while ($this->state == PromiseInterface::STATE_PENDING) {
+                // @codeCoverageIgnoreStart
                 usleep(25000);
+                // @codeCoverageIgnoreEnd
             }
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
             if (!is_callable($callable)) {
@@ -192,7 +194,9 @@ final class PromiseA implements PromiseInterface
             $value->then($callable, $callable);
             // resolve async locking error
             while (!$resolved) {
+                // @codeCoverageIgnoreStart
                 usleep(25000);
+                // @codeCoverageIgnoreEnd
             }
         } else {
             $this->result = $value;
