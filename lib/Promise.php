@@ -110,6 +110,31 @@ final class Promise implements PromiseInterface
     }
 
     /**
+     * {@inheritDoc}
+     *
+     * @param iterable $promises
+     * @return PromiseInterface
+     */
+    public static function all(iterable $promises): PromiseInterface
+    {
+        return self::create(function (callable $resolve) use ($promises) {
+            $result = [];
+            foreach ($promises as $key => $promise) {
+                if (!$promise instanceof Promise) {
+                    throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
+                }
+                $promise->then(function ($value) use ($key, &$result) {
+                    $result[$key] = $value;
+                    return $value;
+                });
+                $promise->wait();
+            }
+            ksort($result);
+            $resolve($result);
+        });
+    }
+
+    /**
      * Expect promise
      *
      * @return void

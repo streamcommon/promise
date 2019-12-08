@@ -35,7 +35,7 @@ interface PromiseInterface
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface;
 
     /**
-     * This method MUST create new promise instance
+     * This method create new promise instance
      *
      * @param callable $promise
      * @return PromiseInterface
@@ -57,4 +57,12 @@ interface PromiseInterface
      * @return PromiseInterface
      */
     public static function reject($value): PromiseInterface;
+
+    /**
+     * This method create a new promise and return values when all promises are change stage
+     *
+     * @param iterable $promises
+     * @return PromiseInterface
+     */
+    public static function all(iterable $promises): PromiseInterface;
 }

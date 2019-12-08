@@ -19,6 +19,7 @@ use Throwable;
 use function extension_loaded;
 use function count;
 use function ksort;
+use function usleep;
 use const PHP_SAPI;
 
 /**
@@ -30,8 +31,6 @@ final class PromiseA implements PromiseInterface
 {
     /** @var int */
     private $state = PromiseInterface::STATE_PENDING;
-    /** @var Channel */
-    private $channel;
     /** @var mixed */
     private $result;
 
@@ -43,33 +42,32 @@ final class PromiseA implements PromiseInterface
     public function __construct(callable $executor)
     {
         // @codeCoverageIgnoreStart
-        if (PHP_SAPI !== 'cli' || !extension_loaded('swoole')) {
+        if (PHP_SAPI != 'cli' || !extension_loaded('swoole')) {
             throw new Exception\RuntimeException(
                 'PromiseA MUST running only in CLI mode with swoole extension.'
             );
         }
         // @codeCoverageIgnoreEnd
-        $this->channel = new Channel(1);
-        Coroutine::create(function (callable $executor) {
+        $resolve = function ($value) {
+            $this->setState(PromiseInterface::STATE_FULFILLED);
+            $this->setResult($value);
+        };
+        $reject  = function ($value) {
+            $this->setState(PromiseInterface::STATE_REJECTED);
+            $this->setResult($value);
+        };
+        Coroutine::create(function (callable $executor, $resolve, $reject) {
             try {
-                $resolve = function ($value) {
-                    $this->setState(PromiseInterface::STATE_FULFILLED);
-                    $this->setResult($value);
-                };
-                $reject  = function ($value) {
-                    $this->setState(PromiseInterface::STATE_REJECTED);
-                    $this->setResult($value);
-                };
                 $executor($resolve, $reject);
             } catch (Throwable $exception) {
                 $this->setState(PromiseInterface::STATE_REJECTED);
                 $this->setResult($exception);
             }
-        }, $executor);
+        }, $executor, $resolve, $reject);
     }
 
     /**
-     * This method create new promise instance
+     * {@inheritDoc}
      *
      * @param callable $promise
      * @return PromiseA
@@ -80,7 +78,7 @@ final class PromiseA implements PromiseInterface
     }
 
     /**
-     * This method create new fulfilled promise with $value result
+     * {@inheritDoc}
      *
      * @param mixed $value
      * @return PromiseA
@@ -93,7 +91,7 @@ final class PromiseA implements PromiseInterface
     }
 
     /**
-     * This method create new rejected promise with $value result
+     * {@inheritDoc}
      *
      * @param mixed $value
      * @return PromiseA
@@ -106,7 +104,7 @@ final class PromiseA implements PromiseInterface
     }
 
     /**
-     * It be called after promise change stage
+     * {@inheritDoc}
      *
      * @param callable|null $onFulfilled
      * @param callable|null $onRejected
@@ -115,15 +113,16 @@ final class PromiseA implements PromiseInterface
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
         return self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
-            $result = $this->channel->pop();
-            $this->channel->push($result);
+            while ($this->state == PromiseInterface::STATE_PENDING) {
+                usleep(25000);
+            }
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
             if (!is_callable($callable)) {
-                $resolve($result);
+                $resolve($this->result);
                 return;
             }
             try {
-                $resolve($callable($result));
+                $resolve($callable($this->result));
             } catch (Throwable $error) {
                 $reject($error);
             }
@@ -131,10 +130,10 @@ final class PromiseA implements PromiseInterface
     }
 
     /**
-     * Returns a new promise when all promises are change stage
+     * {@inheritDoc}
      *
      * @param iterable $promises
-     * @return PromiseA
+     * @return PromiseInterface
      */
     public static function all(iterable $promises): PromiseInterface
     {
@@ -185,13 +184,15 @@ final class PromiseA implements PromiseInterface
             if (!$value instanceof PromiseA) {
                 throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
             }
-            $callable = function ($value) {
+            $originalState = $this->state;
+            $this->state   = PromiseInterface::STATE_PENDING;
+            $callable      = function ($value) use ($originalState) {
                 $this->setResult($value);
+                $this->setState($originalState);
             };
             $value->then($callable, $callable);
         } else {
             $this->result = $value;
-            $this->channel->push($this->result);
         }
     }
 
@@ -203,14 +204,5 @@ final class PromiseA implements PromiseInterface
     private function isFulfilled(): bool
     {
         return $this->state == PromiseInterface::STATE_FULFILLED;
-    }
-
-    /**
-     * Destructor
-     */
-    public function __destruct()
-    {
-        $this->channel->close();
-        unset($this->channel);
     }
 }

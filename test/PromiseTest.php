@@ -180,6 +180,14 @@ class PromiseTest extends TestCase
                     return new self();
                 }
 
+                /**
+                 * @param mixed $value
+                 * @return PromiseInterface
+                 */
+                public static function all($value): PromiseInterface
+                {
+                    return new self();
+                }
             });
         });
         $promise->then(null, function ($value) {
