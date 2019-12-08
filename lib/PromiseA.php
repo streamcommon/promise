@@ -184,6 +184,7 @@ final class PromiseA implements PromiseInterface
             if (!$value instanceof PromiseA) {
                 throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
             }
+            //todo still have locking error
             $originalState = $this->state;
             $this->state   = PromiseInterface::STATE_PENDING;
             $callable      = function ($value) use ($originalState) {
