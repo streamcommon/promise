@@ -195,4 +195,32 @@ class PromiseTest extends TestCase
         });
         $promise->wait();
     }
+
+    /**
+     * Test promise all method
+     *
+     * @return void
+     */
+    public function testPromiseAll(): void
+    {
+        $promise1 = Promise::create(function (callable $resolve) {
+            $resolve(41);
+        });
+        $promise2 = Promise::create(function (callable $resolve) {
+            $resolve(42);
+        });
+        /** @var Promise $promiseAll */
+        $promiseAll = Promise::all([$promise1, $promise2]);
+        $promiseAll->then(function ($value) {
+            $this->assertIsArray($value);
+        });
+        $promiseAll->then(function ($value) {
+            $this->assertEquals([41, 42], $value);
+        });
+        $promiseAll->then(function ($value) {
+            $this->assertEquals(41, $value[0]);
+            $this->assertEquals(42, $value[1]);
+        });
+        $promiseAll->wait();
+    }
 }

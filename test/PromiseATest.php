@@ -15,7 +15,6 @@ namespace Streamcommon\Test\Promise;
 use PHPUnit\Framework\TestCase;
 use Streamcommon\Promise\{PromiseA, PromiseInterface};
 use Streamcommon\Promise\Exception\RuntimeException;
-use Swoole\Coroutine\Channel;
 
 /**
  * Class PromiseATest
@@ -188,6 +187,33 @@ class PromiseATest extends TestCase
         });
         $promise->then(null, function ($value) {
             $this->assertInstanceOf(RuntimeException::class, $value);
+        });
+    }
+
+    /**
+     * Test promise all method
+     *
+     * @return void
+     */
+    public function testPromiseAll(): void
+    {
+        $promise1 = PromiseA::create(function (callable $resolve) {
+            $resolve(41);
+        });
+        $promise2 = PromiseA::create(function (callable $resolve) {
+            $resolve(42);
+        });
+        /** @var PromiseA $promiseAll */
+        $promiseAll = PromiseA::all([$promise1, $promise2]);
+        $promiseAll->then(function ($value) {
+            $this->assertIsArray($value);
+        });
+        $promiseAll->then(function ($value) {
+            $this->assertEquals([41, 42], $value);
+        });
+        $promiseAll->then(function ($value) {
+            $this->assertEquals(41, $value[0]);
+            $this->assertEquals(42, $value[1]);
         });
     }
 }
