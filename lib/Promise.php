@@ -143,17 +143,17 @@ final class Promise implements PromiseInterface
     {
         try {
             $resolve = function ($value) {
-                $this->setState(PromiseInterface::STATE_FULFILLED);
                 $this->setResult($value);
+                $this->setState(PromiseInterface::STATE_FULFILLED);
             };
             $reject  = function ($value) {
-                $this->setState(PromiseInterface::STATE_REJECTED);
                 $this->setResult($value);
+                $this->setState(PromiseInterface::STATE_REJECTED);
             };
             call_user_func_array($this->executor, [$resolve, $reject]);
         } catch (Throwable $exception) {
-            $this->setState(PromiseInterface::STATE_REJECTED);
             $this->result = $exception;
+            $this->setState(PromiseInterface::STATE_REJECTED);
         }
         while (!$this->sequence->isEmpty()) {
             $promise = $this->sequence->pop();

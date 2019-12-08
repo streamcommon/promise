@@ -49,19 +49,19 @@ final class PromiseA implements PromiseInterface
         }
         // @codeCoverageIgnoreEnd
         $resolve = function ($value) {
-            $this->setState(PromiseInterface::STATE_FULFILLED);
             $this->setResult($value);
+            $this->setState(PromiseInterface::STATE_FULFILLED);
         };
         $reject  = function ($value) {
-            $this->setState(PromiseInterface::STATE_REJECTED);
             $this->setResult($value);
+            $this->setState(PromiseInterface::STATE_REJECTED);
         };
         Coroutine::create(function (callable $executor, $resolve, $reject) {
             try {
                 $executor($resolve, $reject);
             } catch (Throwable $exception) {
-                $this->setState(PromiseInterface::STATE_REJECTED);
                 $this->setResult($exception);
+                $this->setState(PromiseInterface::STATE_REJECTED);
             }
         }, $executor, $resolve, $reject);
     }
@@ -184,14 +184,16 @@ final class PromiseA implements PromiseInterface
             if (!$value instanceof PromiseA) {
                 throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
             }
-            //todo still have locking error
-            $originalState = $this->state;
-            $this->state   = PromiseInterface::STATE_PENDING;
-            $callable      = function ($value) use ($originalState) {
+            $resolved = false;
+            $callable = function ($value) use (&$resolved) {
                 $this->setResult($value);
-                $this->setState($originalState);
+                $resolved = true;
             };
             $value->then($callable, $callable);
+            // resolve async locking error
+            while (!$resolved) {
+                usleep(25000);
+            }
         } else {
             $this->result = $value;
         }

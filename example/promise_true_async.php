@@ -31,7 +31,7 @@ $promise1 = PromiseA::create(function (callable $resolve) {
     $resolve(41);
 });
 $promise2 = $promise1->then(function ($value) {
-    sleep(2);
+    sleep(10);
     return $value + 1;
 });
 $promise3 = $promise1->then(function ($value) {
