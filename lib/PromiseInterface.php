@@ -35,6 +35,14 @@ interface PromiseInterface
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface;
 
     /**
+     * This method return a promise with rejected case only
+     *
+     * @param callable $onRejected
+     * @return PromiseInterface
+     */
+    public function catch(callable $onRejected): PromiseInterface;
+
+    /**
      * This method create new promise instance
      *
      * @param callable $promise

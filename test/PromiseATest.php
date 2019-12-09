@@ -148,6 +148,15 @@ class PromiseATest extends TestCase
                 }
 
                 /**
+                 * @param callable $onRejected
+                 * @return PromiseInterface
+                 */
+                public function catch(callable $onRejected): PromiseInterface
+                {
+                    return $this->then(null, $onRejected);
+                }
+
+                /**
                  * @param callable $promise
                  * @return PromiseInterface
                  */

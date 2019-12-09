@@ -36,5 +36,6 @@ $promisesArray = [$promise1, $promise2];
 
 $promiseAll = PromiseA::all([$promise1, $promise2]);
 $promiseAll->then(function ($value) {
-    var_dump($value);
+    echo $value[0] . ' === 41' . PHP_EOL;
+    echo $value[1] . ' === 42' . PHP_EOL;
 });

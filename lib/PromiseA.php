@@ -12,13 +12,13 @@ declare(strict_types=1);
 
 namespace Streamcommon\Promise;
 
+use Ds\Map;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
 use Throwable;
 
 use function extension_loaded;
 use function count;
-use function ksort;
 use function usleep;
 use const PHP_SAPI;
 
@@ -60,8 +60,10 @@ final class PromiseA implements PromiseInterface
             try {
                 $executor($resolve, $reject);
             } catch (Throwable $exception) {
-                $this->setResult($exception);
-                $this->setState(PromiseInterface::STATE_REJECTED);
+                if ($this->state == PromiseInterface::STATE_PENDING) {
+                    $this->setResult($exception);
+                    $this->setState(PromiseInterface::STATE_REJECTED);
+                }
             }
         }, $executor, $resolve, $reject);
     }
@@ -134,22 +136,33 @@ final class PromiseA implements PromiseInterface
     /**
      * {@inheritDoc}
      *
+     * @param callable $onRejected
+     * @return PromiseA
+     */
+    public function catch(callable $onRejected): PromiseInterface
+    {
+        return $this->then(null, $onRejected);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * @param iterable $promises
-     * @return PromiseInterface
+     * @return PromiseA
      */
     public static function all(iterable $promises): PromiseInterface
     {
         return self::create(function (callable $resolve) use ($promises) {
             $ticks   = count($promises);
             $channel = new Channel($ticks);
-            $result  = [];
+            $result  = new Map();
             foreach ($promises as $key => $promise) {
                 if (!$promise instanceof PromiseA) {
                     $channel->close();
                     throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
                 }
-                $promise->then(function ($value) use ($key, &$result, $channel) {
-                    $result[$key] = $value;
+                $promise->then(function ($value) use ($key, $result, $channel) {
+                    $result->put($key, $value);
                     $channel->push(true);
                     return $value;
                 });
@@ -158,7 +171,7 @@ final class PromiseA implements PromiseInterface
                 $channel->pop();
             }
             $channel->close();
-            ksort($result);
+            $result->ksort();
             $resolve($result);
         });
     }

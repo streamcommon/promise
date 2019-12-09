@@ -12,10 +12,8 @@ declare(strict_types=1);
 
 namespace Streamcommon\Promise;
 
-use Ds\Queue as Sequence;
+use Ds\{Map, Stack};
 use Throwable;
-
-use function call_user_func_array;
 
 /**
  * Class Promise
@@ -26,8 +24,8 @@ final class Promise implements PromiseInterface
 {
     /** @var int */
     private $state = PromiseInterface::STATE_PENDING;
-    /** @var Sequence */
-    private $sequence;
+    /** @var Stack */
+    private $stack;
     /** @var callable */
     private $executor;
     /** @var mixed */
@@ -41,7 +39,7 @@ final class Promise implements PromiseInterface
     public function __construct(callable $executor)
     {
         $this->executor = $executor;
-        $this->sequence = new Sequence();
+        $this->stack    = new Stack();
     }
 
     /**
@@ -105,32 +103,42 @@ final class Promise implements PromiseInterface
                 $reject($error);
             }
         });
-        $this->sequence->push($promise);
+        $this->stack->push($promise);
         return $promise;
     }
 
     /**
      * {@inheritDoc}
      *
+     * @param callable $onRejected
+     * @return Promise
+     */
+    public function catch(callable $onRejected): PromiseInterface
+    {
+        return $this->then(null, $onRejected);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * @param iterable $promises
-     * @return PromiseInterface
+     * @return Promise
      */
     public static function all(iterable $promises): PromiseInterface
     {
         return self::create(function (callable $resolve) use ($promises) {
-            $result = [];
+            $map = new Map();
             foreach ($promises as $key => $promise) {
                 if (!$promise instanceof Promise) {
                     throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
                 }
-                $promise->then(function ($value) use ($key, &$result) {
-                    $result[$key] = $value;
+                $promise->then(function ($value) use ($key, $map) {
+                    $map->put($key, $value);
                     return $value;
                 });
                 $promise->wait();
             }
-            ksort($result);
-            $resolve($result);
+            $resolve($map);
         });
     }
 
@@ -150,18 +158,20 @@ final class Promise implements PromiseInterface
                 $this->setResult($value);
                 $this->setState(PromiseInterface::STATE_REJECTED);
             };
-            call_user_func_array($this->executor, [$resolve, $reject]);
+            ($this->executor)($resolve, $reject);
         } catch (Throwable $exception) {
-            $this->result = $exception;
-            $this->setState(PromiseInterface::STATE_REJECTED);
+            if ($this->state == PromiseInterface::STATE_PENDING) {
+                $this->result = $exception;
+                $this->setState(PromiseInterface::STATE_REJECTED);
+            }
         }
-        while (!$this->sequence->isEmpty()) {
-            $promise = $this->sequence->pop();
+        while (!$this->stack->isEmpty()) {
+            $promise = $this->stack->pop();
             if ($promise instanceof Promise) {
                 $promise->wait();
             }
         }
-        $this->sequence->clear();
+        $this->stack->clear();
     }
 
     /**
@@ -212,7 +222,7 @@ final class Promise implements PromiseInterface
      */
     public function __destruct()
     {
-        $this->sequence->clear();
-        unset($this->sequence);
+        $this->stack->clear();
+        unset($this->stack);
     }
 }
