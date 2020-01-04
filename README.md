@@ -134,12 +134,12 @@ For more info check [example](/example) scripts.
 >> NOTE: TRUE promise work only in CLI mode
 
 ```php
-    use Streamcommon\Promise\PromiseA;
+    use Streamcommon\Promise\ExtSwoolePromise;
     
     // be careful with this
     \Swoole\Runtime::enableCoroutine(); // IF YOU WANT REALY ASYNC
     
-    $promise = PromiseA::create(function (callable $resolve) {
+    $promise = ExtSwoolePromise::create(function (callable $resolve) {
         // the function is executed automatically when the promise is constructed
         $resolve(41);
     });
@@ -181,13 +181,13 @@ For more info check [example](/example) scripts.
 ```
 > Sub async promise
 ```php
-    use Streamcommon\Promise\PromiseA;
+    use Streamcommon\Promise\ExtSwoolePromise;
     
     // be careful with this
     \Swoole\Runtime::enableCoroutine(); // IF YOU WANT REALY ASYNC
     
-    $promise = PromiseA::create(function (callable $resolve) {
-        $promise = PromiseA::create(function (callable $resolve) {
+    $promise = ExtSwoolePromise::create(function (callable $resolve) {
+        $promise = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(41);
         });
         $promise->then(function ($value) use ($resolve) {
@@ -200,12 +200,12 @@ For more info check [example](/example) scripts.
         echo $value . PHP_EOL;
     });
 ```
-> If use `PromiseA` with `daemon|cycle|loop` you must use `Swoole\Runtime::wait()`
+> If use `ExtSwoolePromise` with `daemon|cycle|loop` you must use `Swoole\Runtime::wait()`
 ```php
     \Swoole\Runtime::enableCoroutine();
     while (true) {
         ///
-        Some code with PromiseA
+        Some code with ExtSwoolePromise
         ///
         \Swoole\Runtime::wait();
     }

@@ -13,18 +13,15 @@ declare(strict_types=1);
 namespace Streamcommon\Promise;
 
 use Ds\{Map, Stack};
-use Throwable;
 
 /**
  * Class Promise
  *
  * @package Streamcommon\Promise
  */
-final class Promise implements PromiseInterface
+final class Promise extends AbstractPromise implements WaitInterface
 {
-    /** @var int */
-    private $state = PromiseInterface::STATE_PENDING;
-    /** @var Stack */
+    /** @var Stack<Promise> */
     private $stack;
     /** @var callable */
     private $executor;
@@ -43,43 +40,6 @@ final class Promise implements PromiseInterface
     }
 
     /**
-     * This method create new promise
-     *
-     * @param callable $promise
-     * @return Promise
-     */
-    public static function create(callable $promise): PromiseInterface
-    {
-        return new self($promise);
-    }
-
-    /**
-     * This method create new fulfilled promise with $value result
-     *
-     * @param mixed $value
-     * @return Promise
-     */
-    public static function resolve($value): PromiseInterface
-    {
-        return new self(function (callable $resolve) use ($value) {
-            $resolve($value);
-        });
-    }
-
-    /**
-     * This method create new rejected promise with $value result
-     *
-     * @param mixed $value
-     * @return Promise
-     */
-    public static function reject($value): PromiseInterface
-    {
-        return new self(function (callable $resolve, callable $reject) use ($value) {
-            $reject($value);
-        });
-    }
-
-    /**
      * It be called after promise change stage
      *
      * @param callable|null $onFulfilled
@@ -89,7 +49,7 @@ final class Promise implements PromiseInterface
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
         $promise = self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
-            if ($this->state == PromiseInterface::STATE_PENDING) {
+            if ($this->isPending()) {
                 $this->wait();
             }
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
@@ -99,7 +59,7 @@ final class Promise implements PromiseInterface
             }
             try {
                 $resolve($callable($this->result));
-            } catch (Throwable $error) {
+            } catch (\Throwable $error) {
                 $reject($error);
             }
         });
@@ -110,18 +70,7 @@ final class Promise implements PromiseInterface
     /**
      * {@inheritDoc}
      *
-     * @param callable $onRejected
-     * @return Promise
-     */
-    public function catch(callable $onRejected): PromiseInterface
-    {
-        return $this->then(null, $onRejected);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param iterable $promises
+     * @param iterable<Promise> $promises
      * @return Promise
      */
     public static function all(iterable $promises): PromiseInterface
@@ -152,18 +101,17 @@ final class Promise implements PromiseInterface
         try {
             $resolve = function ($value) {
                 $this->setResult($value);
-                $this->setState(PromiseInterface::STATE_FULFILLED);
+                $this->setState(self::STATE_FULFILLED);
             };
             $reject  = function ($value) {
-                $this->setResult($value);
-                $this->setState(PromiseInterface::STATE_REJECTED);
+                if ($this->isPending()) {
+                    $this->setResult($value);
+                    $this->setState(self::STATE_REJECTED);
+                }
             };
             ($this->executor)($resolve, $reject);
-        } catch (Throwable $exception) {
-            if ($this->state == PromiseInterface::STATE_PENDING) {
-                $this->result = $exception;
-                $this->setState(PromiseInterface::STATE_REJECTED);
-            }
+        } catch (\Throwable $exception) {
+            $reject($exception);
         }
         while (!$this->stack->isEmpty()) {
             $promise = $this->stack->pop();
@@ -172,17 +120,6 @@ final class Promise implements PromiseInterface
             }
         }
         $this->stack->clear();
-    }
-
-    /**
-     * Change promise state
-     *
-     * @param integer $state
-     * @return void
-     */
-    private function setState(int $state): void
-    {
-        $this->state = $state;
     }
 
     /**
@@ -205,16 +142,6 @@ final class Promise implements PromiseInterface
         } else {
             $this->result = $value;
         }
-    }
-
-    /**
-     * Promise is fulfilled
-     *
-     * @return boolean
-     */
-    private function isFulfilled(): bool
-    {
-        return $this->state == PromiseInterface::STATE_FULFILLED;
     }
 
     /**

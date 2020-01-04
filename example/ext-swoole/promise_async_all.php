@@ -10,32 +10,32 @@
  */
 declare(strict_types=1);
 
-use Streamcommon\Promise\PromiseA;
+use Streamcommon\Promise\ExtSwoolePromise;
 use Swoole\Runtime;
 
 if (PHP_SAPI !== 'cli' || !extension_loaded('swoole')) {
-    echo 'PromiseCo MUST running only in CLI mode with swoole extension' . PHP_EOL;
+    echo 'ExtSwoolePromise MUST running only in CLI mode with swoole extension' . PHP_EOL;
     exit(0);
 }
 if (file_exists(__DIR__ . '/../../../autoload.php')) {
     require __DIR__ . '/../../../autoload.php';
-} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require __DIR__ . '/../vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+    require __DIR__ . '/../../vendor/autoload.php';
 } else {
     throw new \RuntimeException('File autoload.php not exists');
 }
 Runtime::enableCoroutine();
 ########### INIT ##############
-$promise1      = PromiseA::create(function (callable $resolve) {
+$promise1      = ExtSwoolePromise::create(function (callable $resolve) {
     $resolve(41);
 });
-$promise2      = PromiseA::create(function (callable $resolve) {
+$promise2      = ExtSwoolePromise::create(function (callable $resolve) {
     $resolve(42);
 });
 $promisesArray = [$promise1, $promise2];
 
-$promiseAll = PromiseA::all([$promise1, $promise2]);
-$promiseAll->then(function ($value) {
+$ExtSwooleExtParallelPromisel = ExtSwoolePromise::all([$promise1, $promise2]);
+$ExtSwooleExtParallelPromisel->then(function ($value) {
     echo $value[0] . ' === 41' . PHP_EOL;
     echo $value[1] . ' === 42' . PHP_EOL;
 });

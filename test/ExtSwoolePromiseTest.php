@@ -13,15 +13,15 @@ declare(strict_types=1);
 namespace Streamcommon\Test\Promise;
 
 use PHPUnit\Framework\TestCase;
-use Streamcommon\Promise\{Promise, PromiseA, PromiseInterface};
+use Streamcommon\Promise\{Promise, ExtSwoolePromise, PromiseInterface};
 use Streamcommon\Promise\Exception\RuntimeException;
 
 /**
- * Class PromiseATest
+ * Class ExtSwoolePromiseTest
  *
  * @package Streamcommon\Test\Promise
  */
-class PromiseATest extends TestCase
+class ExtSwoolePromiseTest extends TestCase
 {
     /**
      * Test sync promise
@@ -30,7 +30,7 @@ class PromiseATest extends TestCase
      */
     public function testPromise(): void
     {
-        $promise  = PromiseA::create(function ($resolver) {
+        $promise  = ExtSwoolePromise::create(function ($resolver) {
             $resolver(41);
         });
         $promise2 = $promise->then(function ($value) {
@@ -55,7 +55,7 @@ class PromiseATest extends TestCase
      */
     public function testPromiseResolve(): void
     {
-        $promise = PromiseA::resolve(42);
+        $promise = ExtSwoolePromise::resolve(42);
         $promise->then(function ($value) {
             $this->assertEquals(42, $value);
         });
@@ -69,7 +69,7 @@ class PromiseATest extends TestCase
      */
     public function testPromiseReject(): void
     {
-        $promise = PromiseA::reject(42);
+        $promise = ExtSwoolePromise::reject(42);
         $promise->then(null, function ($value) {
             $this->assertEquals(42, $value);
         });
@@ -82,7 +82,7 @@ class PromiseATest extends TestCase
      */
     public function testPromiseThrow(): void
     {
-        $promise = PromiseA::create(function ($resolver) {
+        $promise = ExtSwoolePromise::create(function ($resolver) {
             throw new RuntimeException();
         });
         $promise->then(null, function ($value) {
@@ -97,8 +97,8 @@ class PromiseATest extends TestCase
      */
     public function testSubPromise(): void
     {
-        $promise  = PromiseA::create(function (callable $resolve) {
-            $promise = PromiseA::create(function (callable $resolve) {
+        $promise  = ExtSwoolePromise::create(function (callable $resolve) {
+            $promise = ExtSwoolePromise::create(function (callable $resolve) {
                 $resolve(41);
             });
             $promise->then(function ($value) use ($resolve) {
@@ -106,12 +106,12 @@ class PromiseATest extends TestCase
             });
         });
         $promise2 = $promise->then(function ($value) {
-            return PromiseA::create(function (callable $resolve) use ($value) {
+            return ExtSwoolePromise::create(function (callable $resolve) use ($value) {
                 $resolve($value + 1);
             });
         });
         $promise3 = $promise->then(function ($value) {
-            return PromiseA::create(function (callable $resolve) use ($value) {
+            return ExtSwoolePromise::create(function (callable $resolve) use ($value) {
                 $resolve($value + 1);
             })->then(function ($value) {
                 return $value + 1;
@@ -135,7 +135,7 @@ class PromiseATest extends TestCase
      */
     public function testSubPromiseException(): void
     {
-        $promise = PromiseA::create(function (callable $resolve) {
+        $promise = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(new class implements PromiseInterface {
                 /**
                  * @param callable|null $onFulfilled
@@ -204,23 +204,23 @@ class PromiseATest extends TestCase
      *
      * @return void
      */
-    public function testPromiseAll(): void
+    public function testExtSwooleExtParallelPromisel(): void
     {
-        $promise1 = PromiseA::create(function (callable $resolve) {
+        $promise1 = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(41);
         });
-        $promise2 = PromiseA::create(function (callable $resolve) {
+        $promise2 = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(42);
         });
-        /** @var PromiseA $promiseAll */
-        $promiseAll = PromiseA::all([$promise1, $promise2]);
-        $promiseAll->then(function ($value) {
+        /** @var ExtSwoolePromise $ExtSwooleExtParallelPromisel */
+        $ExtSwooleExtParallelPromisel = ExtSwoolePromise::all([$promise1, $promise2]);
+        $ExtSwooleExtParallelPromisel->then(function ($value) {
             $this->assertIsArray($value);
         });
-        $promiseAll->then(function ($value) {
+        $ExtSwooleExtParallelPromisel->then(function ($value) {
             $this->assertEquals([41, 42], $value);
         });
-        $promiseAll->then(function ($value) {
+        $ExtSwooleExtParallelPromisel->then(function ($value) {
             $this->assertEquals(41, $value[0]);
             $this->assertEquals(42, $value[1]);
         });
@@ -231,17 +231,17 @@ class PromiseATest extends TestCase
      *
      * @return void
      */
-    public function testPromiseAllException(): void
+    public function testExtSwooleExtParallelPromiselException(): void
     {
         $promise1 = Promise::create(function (callable $resolve) {
             $resolve(41);
         });
-        $promise2 = PromiseA::create(function (callable $resolve) {
+        $promise2 = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(42);
         });
-        /** @var PromiseA $promiseAll */
-        $promiseAll = PromiseA::all([$promise1, $promise2]);
-        $promiseAll->then(null, function ($value) {
+        /** @var ExtSwoolePromise $ExtSwooleExtParallelPromisel */
+        $ExtSwooleExtParallelPromisel = ExtSwoolePromise::all([$promise1, $promise2]);
+        $ExtSwooleExtParallelPromisel->then(null, function ($value) {
             $this->assertInstanceOf(RuntimeException::class, $value);
         });
     }

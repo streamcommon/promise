@@ -15,22 +15,20 @@ namespace Streamcommon\Promise;
 use Ds\Map;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
-use Throwable;
 
 use function extension_loaded;
 use function count;
+use function is_callable;
 use function usleep;
 use const PHP_SAPI;
 
 /**
- * Class PromiseA
+ * Class ExtSwoolePromise
  *
  * @package Streamcommon\Promise
  */
-final class PromiseA implements PromiseInterface
+final class ExtSwoolePromise extends AbstractPromise
 {
-    /** @var int */
-    private $state = PromiseInterface::STATE_PENDING;
     /** @var mixed */
     private $result;
 
@@ -44,26 +42,25 @@ final class PromiseA implements PromiseInterface
         // @codeCoverageIgnoreStart
         if (PHP_SAPI != 'cli' || !extension_loaded('swoole')) {
             throw new Exception\RuntimeException(
-                'PromiseA MUST running only in CLI mode with swoole extension.'
+                'ExtSwoolePromise MUST running only in CLI mode with swoole extension.'
             );
         }
         // @codeCoverageIgnoreEnd
         $resolve = function ($value) {
             $this->setResult($value);
-            $this->setState(PromiseInterface::STATE_FULFILLED);
+            $this->setState(self::STATE_FULFILLED);
         };
         $reject  = function ($value) {
-            $this->setResult($value);
-            $this->setState(PromiseInterface::STATE_REJECTED);
+            if ($this->isPending()) {
+                $this->setResult($value);
+                $this->setState(self::STATE_REJECTED);
+            }
         };
-        Coroutine::create(function (callable $executor, $resolve, $reject) {
+        Coroutine::create(function (callable $executor, callable $resolve, callable $reject) {
             try {
                 $executor($resolve, $reject);
-            } catch (Throwable $exception) {
-                if ($this->state == PromiseInterface::STATE_PENDING) {
-                    $this->setResult($exception);
-                    $this->setState(PromiseInterface::STATE_REJECTED);
-                }
+            } catch (\Throwable $exception) {
+                $reject($exception);
             }
         }, $executor, $resolve, $reject);
     }
@@ -71,51 +68,14 @@ final class PromiseA implements PromiseInterface
     /**
      * {@inheritDoc}
      *
-     * @param callable $promise
-     * @return PromiseA
-     */
-    public static function create(callable $promise): PromiseInterface
-    {
-        return new self($promise);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param mixed $value
-     * @return PromiseA
-     */
-    public static function resolve($value): PromiseInterface
-    {
-        return new self(function (callable $resolve) use ($value) {
-            $resolve($value);
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param mixed $value
-     * @return PromiseA
-     */
-    public static function reject($value): PromiseInterface
-    {
-        return new self(function (callable $resolve, callable $reject) use ($value) {
-            $reject($value);
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     *
      * @param callable|null $onFulfilled
      * @param callable|null $onRejected
-     * @return PromiseA
+     * @return ExtSwoolePromise
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
         return self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
-            while ($this->state == PromiseInterface::STATE_PENDING) {
+            while ($this->isPending()) {
                 // @codeCoverageIgnoreStart
                 usleep(25000);
                 // @codeCoverageIgnoreEnd
@@ -127,7 +87,7 @@ final class PromiseA implements PromiseInterface
             }
             try {
                 $resolve($callable($this->result));
-            } catch (Throwable $error) {
+            } catch (\Throwable $error) {
                 $reject($error);
             }
         });
@@ -136,19 +96,8 @@ final class PromiseA implements PromiseInterface
     /**
      * {@inheritDoc}
      *
-     * @param callable $onRejected
-     * @return PromiseA
-     */
-    public function catch(callable $onRejected): PromiseInterface
-    {
-        return $this->then(null, $onRejected);
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @param iterable $promises
-     * @return PromiseA
+     * @param iterable<ExtSwoolePromise> $promises
+     * @return ExtSwoolePromise
      */
     public static function all(iterable $promises): PromiseInterface
     {
@@ -157,9 +106,9 @@ final class PromiseA implements PromiseInterface
             $channel = new Channel($ticks);
             $result  = new Map();
             foreach ($promises as $key => $promise) {
-                if (!$promise instanceof PromiseA) {
+                if (!$promise instanceof ExtSwoolePromise) {
                     $channel->close();
-                    throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
+                    throw new Exception\RuntimeException('Supported only Streamcommon\Promise\ExtSwoolePromise instance');
                 }
                 $promise->then(function ($value) use ($key, $result, $channel) {
                     $result->put($key, $value);
@@ -177,17 +126,6 @@ final class PromiseA implements PromiseInterface
     }
 
     /**
-     * Change promise state
-     *
-     * @param integer $state
-     * @return void
-     */
-    private function setState(int $state): void
-    {
-        $this->state = $state;
-    }
-
-    /**
      * Set resolved result
      *
      * @param mixed $value
@@ -196,8 +134,8 @@ final class PromiseA implements PromiseInterface
     private function setResult($value): void
     {
         if ($value instanceof PromiseInterface) {
-            if (!$value instanceof PromiseA) {
-                throw new Exception\RuntimeException('Supported only Streamcommon\Promise\PromiseA instance');
+            if (!$value instanceof ExtSwoolePromise) {
+                throw new Exception\RuntimeException('Supported only Streamcommon\Promise\ExtSwoolePromise instance');
             }
             $resolved = false;
             $callable = function ($value) use (&$resolved) {
@@ -214,15 +152,5 @@ final class PromiseA implements PromiseInterface
         } else {
             $this->result = $value;
         }
-    }
-
-    /**
-     * Promise is fulfilled
-     *
-     * @return boolean
-     */
-    private function isFulfilled(): bool
-    {
-        return $this->state == PromiseInterface::STATE_FULFILLED;
     }
 }

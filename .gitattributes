@@ -9,3 +9,4 @@
 /phpunit.xml.dist export-ignore
 /test/ export-ignore
 /data/ export-ignore
+/Dockerfile export-ignore

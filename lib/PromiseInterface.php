@@ -19,10 +19,6 @@ namespace Streamcommon\Promise;
  */
 interface PromiseInterface
 {
-    const STATE_PENDING   = 1;
-    const STATE_FULFILLED = 0;
-    const STATE_REJECTED  = -1;
-
     /**
      * It be called after promise change stage
      *
@@ -69,7 +65,7 @@ interface PromiseInterface
     /**
      * This method create a new promise and return values when all promises are change stage
      *
-     * @param iterable $promises
+     * @param iterable<PromiseInterface> $promises
      * @return PromiseInterface
      */
     public static function all(iterable $promises): PromiseInterface;

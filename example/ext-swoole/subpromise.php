@@ -10,31 +10,27 @@
  */
 declare(strict_types=1);
 
-use Streamcommon\Promise\PromiseA;
-use Swoole\Runtime;
+use Streamcommon\Promise\ExtSwoolePromise;
 
 if (PHP_SAPI !== 'cli' || !extension_loaded('swoole')) {
-    echo 'PromiseCo MUST running only in CLI mode with swoole extension' . PHP_EOL;
+    echo 'ExtSwoolePromise MUST running only in CLI mode with swoole extension' . PHP_EOL;
     exit(0);
 }
 if (file_exists(__DIR__ . '/../../../autoload.php')) {
     require __DIR__ . '/../../../autoload.php';
-} elseif (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require __DIR__ . '/../vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+    require __DIR__ . '/../../vendor/autoload.php';
 } else {
     throw new \RuntimeException('File autoload.php not exists');
 }
-Runtime::enableCoroutine();
-
 #############################################################
 
 #############################################################
-$promise  = PromiseA::create(function (callable $resolve) {
-    $promise = PromiseA::create(function (callable $resolve) {
+$promise  = ExtSwoolePromise::create(function (callable $resolve) {
+    $promise = ExtSwoolePromise::create(function (callable $resolve) {
         $resolve(41);
     });
     $promise->then(function ($value) use ($resolve) {
-        sleep(1);
         $resolve($value);
     });
 });
@@ -51,9 +47,9 @@ $promise2->then(function ($value) {
 #############################################################
 
 #############################################################
-$promise  = PromiseA::create(function (callable $resolve) {
-    $resolve(PromiseA::create(function (callable $resolve) {
-        sleep(3);
+$promise  = ExtSwoolePromise::create(function (callable $resolve) {
+    $resolve(ExtSwoolePromise::create(function (callable $resolve) {
+        sleep(2);
         $resolve(42);
     }));
 });
@@ -61,6 +57,7 @@ $promise2 = $promise->then(function ($value) {
     return $value + 1;
 });
 $promise->then(function ($value) {
+    sleep(1);
     echo $value . ' === 42' . PHP_EOL;
 });
 $promise2->then(function ($value) {
@@ -69,12 +66,12 @@ $promise2->then(function ($value) {
 #############################################################
 
 #############################################################
-$promise  = PromiseA::create(function (callable $resolve) {
+$promise  = ExtSwoolePromise::create(function (callable $resolve) {
     $resolve(43);
 });
 $promise2 = $promise->then(function ($value) {
     sleep(1);
-    return PromiseA::create(function (callable $resolve) use ($value) {
+    return ExtSwoolePromise::create(function (callable $resolve) use ($value) {
         $resolve($value + 1);
     })->then(function ($value) {
         return $value + 1;

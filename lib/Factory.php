@@ -23,6 +23,9 @@ use const PHP_SAPI;
  */
 class Factory
 {
+    const EXT_SWOOLE = 'swoole';
+    const EXT_PARALLEL = 'parallel';
+
     /**
      * This method MUST create new promise instance
      *
@@ -33,7 +36,7 @@ class Factory
     {
         if (PHP_SAPI == 'cli') {
             if (extension_loaded('swoole')) {
-                return PromiseA::create($promise);
+                return ExtSwoolePromise::create($promise);
             }
         }
         return Promise::create($promise);
@@ -49,10 +52,10 @@ class Factory
     {
         if (PHP_SAPI == 'cli') {
             if (extension_loaded('swoole')) {
-                return PromiseA::resolve($value);
+                return ExtSwoolePromise::resolve($value);
             }
         }
-        return PromiseA::create($value);
+        return ExtSwoolePromise::create($value);
     }
 
     /**
@@ -65,9 +68,9 @@ class Factory
     {
         if (PHP_SAPI == 'cli') {
             if (extension_loaded('swoole')) {
-                return PromiseA::resolve($value);
+                return ExtSwoolePromise::resolve($value);
             }
         }
-        return PromiseA::create($value);
+        return ExtSwoolePromise::create($value);
     }
 }
