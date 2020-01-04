@@ -92,7 +92,7 @@ final class Promise extends AbstractPromise implements WaitInterface
     }
 
     /**
-     * Expect promise
+     * {@inheritDoc}
      *
      * @return void
      */
