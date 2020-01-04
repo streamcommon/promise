@@ -1,4 +1,4 @@
-FROM php:7.3-zts
+FROM php:7.2-zts
 
 RUN pecl channel-update pecl.php.net && apt-get update \
     && apt-get install zlib1g-dev libzip4 \
