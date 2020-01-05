@@ -46,7 +46,6 @@ final class ExtParallelPromise extends AbstractPromise
                 'ExtParallelPromise MUST running only in CLI mode with parallel extension.'
             );
         }
-        // @codeCoverageIgnoreEnd
         $autoloadFiles = [
             realpath(__DIR__) . '/../vendor/autoload.php',
             realpath(__DIR__) . '/../../../autoload.php'
@@ -58,34 +57,37 @@ final class ExtParallelPromise extends AbstractPromise
                 break;
             }
         }
-        $this->sync = $sync = new Sync;
-        $resolve = function ($value) use ($sync) {
-            $this->setResult($value);
-            $this->setState(self::STATE_FULFILLED);
-            $sync->set(json_encode([
-                'result' => $this->result,
-                'state'  => $this->state,
-            ]));
-        };
-        $reject = function ($value) use ($sync) {
-            if ($this->isPending()) {
-                $this->setResult($value);
-                $this->setState(self::STATE_REJECTED);
-                $sync->set(json_encode([
-                    'result' => $this->result,
-                    'state'  => $this->state,
-                ]));
-            }
-        };
-        (new Runtime($bootstrap))->run(function (callable $executor, callable $resolve, callable $reject) use ($sync) {
-            $sync(function () use ($sync, $executor, $resolve, $reject) {
+        if ($bootstrap === null) {
+            throw new Exception\RuntimeException('Undefined autoload file');
+        }
+        // @codeCoverageIgnoreEnd
+        $this->sync = new Sync;
+        (new Runtime($bootstrap))->run(function (callable $executor, Sync $sync) {
+            $sync(function () use ($sync, $executor) {
+                $result = null;
+                $state = AbstractPromise::STATE_PENDING;
+                $resolve = function ($value) use (&$result, &$state) {
+                    $result = $value;
+                    $state = AbstractPromise::STATE_FULFILLED;
+                };
+                $reject = function ($value) use (&$result, &$state) {
+                    if ($state == AbstractPromise::STATE_PENDING) {
+                        $result = $value; //todo serialize
+                        $state = AbstractPromise::STATE_REJECTED;
+                    }
+                };
                 try {
                     $executor($resolve, $reject);
                 } catch (\Throwable $exception) {
                     $reject($exception);
                 }
+                $sync->set(json_encode([
+                    'result' => $result,
+                    'state' => $state,
+                ]));
+                $sync->notify(true);
             });
-        }, [$executor, $resolve, $reject]);
+        }, [$executor, $this->sync]);
     }
 
     /**
@@ -99,22 +101,20 @@ final class ExtParallelPromise extends AbstractPromise
     {
         $sync = $this->sync;
         return self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected, $sync) {
-            $sync(function () use ($sync, $resolve, $reject, $onFulfilled, $onRejected) {
-                while (!is_string($value = $sync->get())) {
-                    $sync->wait();
-                }
-                $value = json_decode($value);
-                $callable = $value->state == self::STATE_FULFILLED ? $onFulfilled : $onRejected;
-                if (!is_callable($callable)) {
-                    $resolve($value->result);
-                    return;
-                }
-                try {
-                    $resolve($callable($value->result));
-                } catch (\Throwable $error) {
-                    $reject($error);
-                }
-            });
+            while (!is_string($value = $sync->get())) {
+                $sync->wait();
+            }
+            $value = json_decode($value);
+            $callable = $value->state == self::STATE_FULFILLED ? $onFulfilled : $onRejected;
+            if (!is_callable($callable)) {
+                $resolve($value->result);
+                return;
+            }
+            try {
+                $resolve($callable($value->result));
+            } catch (\Throwable $error) {
+                $reject($error);
+            }
         });
     }
 
@@ -140,12 +140,22 @@ final class ExtParallelPromise extends AbstractPromise
     {
         if ($value instanceof PromiseInterface) {
             if (!$value instanceof ExtParallelPromise) {
-                throw new Exception\RuntimeException('Supported only Streamcommon\Promise\ExtParallelPromise instance');
+                throw new Exception\RuntimeException(
+                    'Supported only Streamcommon\Promise\ExtParallelPromise instance');
             }
-
-            //todo
+            $sync = $this->sync;
+            $sync(function () use ($sync, $value) {
+                $callable = function ($value) use ($sync) {
+                    while (!is_string($promise = $sync->get())) {
+                        $sync->wait();
+                    }
+                    $promise->result = $value;
+                    $sync->set(json_encode((array) $promise));
+                    $sync->notify(true); //todo check
+                };
+                $value->then($callable, $callable);
+            });
         } else {
-             //var_dump($value);
             $this->result = $value;
         }
     }

@@ -26,21 +26,18 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 
 ########### INIT ##############
 $promise1 = ExtParallelPromise::create(function (callable $resolve) {
-    $resolve(42);
+    $resolve(41);
 });
-$promise1->then(function ($value) {
-    var_dump($value);
+$promise2 = $promise1->then(function ($value) {
+    sleep(2);
+    return $value + 1;
 });
-//$promise2 = $promise1->then(function ($value) {
-//    sleep(2);
-//    return $value + 1;
-//});
 //$promise3 = $promise1->then(function ($value) {
 //    sleep(1);
 //    throw new \Exception('error');
 //});
 //$promise4 = $promise1->then(function ($value) {
-//    return ExtSwoolePromise::create(function (callable $resolver) use ($value) {
+//    return ExtParallelPromise::create(function (callable $resolver) use ($value) {
 //        sleep(3);
 //        $resolver($value + 5);
 //    });
@@ -48,12 +45,14 @@ $promise1->then(function ($value) {
 ########### INIT ##############
 
 ########### RESULT ##############
-//$promise1->then(function ($value) {
-//    echo $value . ' === 41' . PHP_EOL;
-//});
-//$promise2->then(function ($value) {
-//    echo $value . ' === 42' . PHP_EOL;
-//});
+$promise1->then(function ($value) {
+    echo $value . ' === 41' . PHP_EOL;
+});
+$promise2->then(function ($value) {
+    echo $value . ' === 42' . PHP_EOL;
+});
+
+//todo not working
 //$promise3->then(null, function ($error) {
 //    echo 'instanceof Throwable === ' . ($error instanceof Throwable) . PHP_EOL;
 //});
