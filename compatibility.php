@@ -10,19 +10,6 @@
  */
 declare(strict_types=1);
 
-namespace Streamcommon\Promise;
-
-/**
- * Interface WaitInterface
- *
- * @package Streamcommon\Promise
- */
-interface WaitInterface
-{
-    /**
-     * Expect promise
-     *
-     * @return void
-     */
-    public function wait(): void;
+if (!defined('PROMISE_WAIT')) {
+    define('PROMISE_WAIT', 25000);
 }

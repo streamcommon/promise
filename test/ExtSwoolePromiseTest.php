@@ -2,7 +2,7 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
@@ -204,7 +204,7 @@ class ExtSwoolePromiseTest extends TestCase
      *
      * @return void
      */
-    public function testExtSwooleExtParallelPromisel(): void
+    public function testPromiseAll(): void
     {
         $promise1 = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(41);
@@ -212,15 +212,15 @@ class ExtSwoolePromiseTest extends TestCase
         $promise2 = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(42);
         });
-        /** @var ExtSwoolePromise $ExtSwooleExtParallelPromisel */
-        $ExtSwooleExtParallelPromisel = ExtSwoolePromise::all([$promise1, $promise2]);
-        $ExtSwooleExtParallelPromisel->then(function ($value) {
+        /** @var ExtSwoolePromise $promise */
+        $promise = ExtSwoolePromise::all([$promise1, $promise2]);
+        $promise->then(function ($value) {
             $this->assertIsArray($value);
         });
-        $ExtSwooleExtParallelPromisel->then(function ($value) {
+        $promise->then(function ($value) {
             $this->assertEquals([41, 42], $value);
         });
-        $ExtSwooleExtParallelPromisel->then(function ($value) {
+        $promise->then(function ($value) {
             $this->assertEquals(41, $value[0]);
             $this->assertEquals(42, $value[1]);
         });
@@ -231,7 +231,7 @@ class ExtSwoolePromiseTest extends TestCase
      *
      * @return void
      */
-    public function testExtSwooleExtParallelPromiselException(): void
+    public function testPromiseAllException(): void
     {
         $promise1 = Promise::create(function (callable $resolve) {
             $resolve(41);
@@ -239,9 +239,9 @@ class ExtSwoolePromiseTest extends TestCase
         $promise2 = ExtSwoolePromise::create(function (callable $resolve) {
             $resolve(42);
         });
-        /** @var ExtSwoolePromise $ExtSwooleExtParallelPromisel */
-        $ExtSwooleExtParallelPromisel = ExtSwoolePromise::all([$promise1, $promise2]);
-        $ExtSwooleExtParallelPromisel->then(null, function ($value) {
+        /** @var ExtSwoolePromise $promise */
+        $promise = ExtSwoolePromise::all([$promise1, $promise2]);
+        $promise->then(null, function ($value) {
             $this->assertInstanceOf(RuntimeException::class, $value);
         });
     }

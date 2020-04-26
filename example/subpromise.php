@@ -2,7 +2,7 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use Streamcommon\Promise\Promise;
+use Streamcommon\Promise\WaitInterface;
 
 if (file_exists(__DIR__ . '/../../../autoload.php')) {
     require __DIR__ . '/../../../autoload.php';
@@ -29,7 +30,9 @@ $promise  = Promise::create(function (callable $resolve) {
     $promise->then(function ($value) use ($resolve) {
         $resolve($value);
     });
-    $promise->wait();
+    if ($promise instanceof WaitInterface) {
+        $promise->wait();
+    }
 });
 $promise2 = $promise->then(function ($value) {
     return $value + 1;
@@ -40,7 +43,9 @@ $promise->then(function ($value) {
 $promise2->then(function ($value) {
     echo $value . ' === 42' . PHP_EOL;
 });
-$promise->wait();
+if ($promise instanceof WaitInterface) {
+    $promise->wait();
+}
 #############################################################
 
 #############################################################
@@ -58,7 +63,9 @@ $promise->then(function ($value) {
 $promise2->then(function ($value) {
     echo $value . ' === 43' . PHP_EOL;
 });
-$promise->wait();
+if ($promise instanceof WaitInterface) {
+    $promise->wait();
+}
 #############################################################
 
 #############################################################
@@ -79,5 +86,7 @@ $promise->then(function ($value) {
 $promise2->then(function ($value) {
     echo $value . ' === 45' . PHP_EOL;
 });
-$promise->wait();
+if ($promise instanceof WaitInterface) {
+    $promise->wait();
+}
 #############################################################

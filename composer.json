@@ -8,35 +8,52 @@
     "php promise"
   ],
   "require": {
-    "php": "^7.2",
-    "ext-ds": "^1.2.8"
+    "php": "^7.3",
+    "doctrine/collections": "^1.6.4"
   },
   "require-dev": {
     "ext-pcov": "^1.0.0",
     "ext-swoole": "^4.2.13",
-    "ext-parallel": "^1.1.3",
     "streamcommon/coding-standard": "dev-master",
-    "malukenho/docheader": "^0.1.7",
-    "phpstan/phpstan": "^0.12.3",
-    "phpunit/phpunit": "^8.0",
-    "php-coveralls/php-coveralls": "^2.1.0",
-    "ocramius/package-versions": "^1.5.1"
+    "malukenho/docheader": "^0.1.8",
+    "phpstan/phpstan": "^0.12.19",
+    "phpunit/phpunit": "^9.1.3",
+    "php-coveralls/php-coveralls": "^2.2.0",
+    "ocramius/package-versions": "^1.5.1",
+    "BrainMaestro/composer-git-hooks": "^2.8.3"
   },
   "suggest": {
-    "ext-swoole": "Install extension(^4.2.13) for using ExtSwoolePromise",
-    "ext-parallel": "Install extension(^1.1.3) for using ExtSwoolePromise"
+    "ext-swoole": "Install extension(^4.2.13) for using ExtSwoolePromise"
   },
   "autoload": {
     "psr-4": {
       "Streamcommon\\Promise\\": "lib/"
-    }
+    },
+    "files": [
+      "compatibility.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {
       "Streamcommon\\Test\\Promise\\": "test/"
     }
   },
+  "extra": {
+    "hooks": {
+      "pre-commit": [
+        "composer cs-fix"
+      ],
+      "pre-push": [
+        "composer license-check",
+        "composer cs-check",
+        "composer phpstan",
+        "composer phpunit"
+      ]
+    }
+  },
   "scripts": {
+    "post-install-cmd": "cghooks add --ignore-lock",
+    "post-update-cmd": "cghooks update",
     "cs-check": "phpcs",
     "cs-fix": "phpcbf",
     "license-check": "docheader check lib/ test/ example/",

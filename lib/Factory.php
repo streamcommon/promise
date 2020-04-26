@@ -2,7 +2,7 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
@@ -23,9 +23,6 @@ use const PHP_SAPI;
  */
 class Factory
 {
-    const EXT_SWOOLE = 'swoole';
-    const EXT_PARALLEL = 'parallel';
-
     /**
      * This method MUST create new promise instance
      *
@@ -55,7 +52,7 @@ class Factory
                 return ExtSwoolePromise::resolve($value);
             }
         }
-        return ExtSwoolePromise::create($value);
+        return Promise::create($value);
     }
 
     /**
@@ -71,6 +68,6 @@ class Factory
                 return ExtSwoolePromise::resolve($value);
             }
         }
-        return ExtSwoolePromise::create($value);
+        return Promise::create($value);
     }
 }

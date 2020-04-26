@@ -2,12 +2,13 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+declare(strict_types=1);
 
 namespace Streamcommon\Promise;
 
@@ -65,7 +66,7 @@ interface PromiseInterface
     /**
      * This method create a new promise and return values when all promises are change stage
      *
-     * @param iterable<PromiseInterface> $promises
+     * @param iterable|PromiseInterface[] $promises
      * @return PromiseInterface
      */
     public static function all(iterable $promises): PromiseInterface;

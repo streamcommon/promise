@@ -2,7 +2,7 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 use Streamcommon\Promise\Promise;
+use Streamcommon\Promise\WaitInterface;
 
 if (file_exists(__DIR__ . '/../../../autoload.php')) {
     require __DIR__ . '/../../../autoload.php';
@@ -50,4 +51,6 @@ $promise4->then(function ($value) {
     echo $value . ' === 46' . PHP_EOL;
 });
 ########### RESULT ##############
-$promise1->wait();
+if ($promise1 instanceof WaitInterface) {
+    $promise1->wait();
+}

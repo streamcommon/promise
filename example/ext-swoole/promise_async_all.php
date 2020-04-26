@@ -2,7 +2,7 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
@@ -34,8 +34,8 @@ $promise2      = ExtSwoolePromise::create(function (callable $resolve) {
 });
 $promisesArray = [$promise1, $promise2];
 
-$ExtSwooleExtParallelPromisel = ExtSwoolePromise::all([$promise1, $promise2]);
-$ExtSwooleExtParallelPromisel->then(function ($value) {
+$promise = ExtSwoolePromise::all([$promise1, $promise2]);
+$promise->then(function ($value) {
     echo $value[0] . ' === 41' . PHP_EOL;
     echo $value[1] . ' === 42' . PHP_EOL;
 });

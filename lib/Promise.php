@@ -2,7 +2,7 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Streamcommon\Promise;
 
-use Ds\{Map, Stack};
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * Class Promise
@@ -21,8 +21,8 @@ use Ds\{Map, Stack};
  */
 final class Promise extends AbstractPromise implements WaitInterface
 {
-    /** @var Stack<Promise> */
-    private $stack;
+    /** @var ArrayCollection<int, PromiseInterface> */
+    private $collection;
     /** @var callable */
     private $executor;
     /** @var mixed */
@@ -35,8 +35,8 @@ final class Promise extends AbstractPromise implements WaitInterface
      */
     public function __construct(callable $executor)
     {
-        $this->executor = $executor;
-        $this->stack    = new Stack();
+        $this->executor   = $executor;
+        $this->collection = new ArrayCollection();
     }
 
     /**
@@ -48,6 +48,7 @@ final class Promise extends AbstractPromise implements WaitInterface
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
+        /** @var Promise $promise */
         $promise = self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
             if ($this->isPending()) {
                 $this->wait();
@@ -63,31 +64,31 @@ final class Promise extends AbstractPromise implements WaitInterface
                 $reject($error);
             }
         });
-        $this->stack->push($promise);
+        $this->collection->add($promise);
         return $promise;
     }
 
     /**
      * {@inheritDoc}
      *
-     * @param iterable<Promise> $promises
+     * @param iterable|Promise[] $promises
      * @return Promise
      */
     public static function all(iterable $promises): PromiseInterface
     {
         return self::create(function (callable $resolve) use ($promises) {
-            $map = new Map();
+            $result = new ArrayCollection();
             foreach ($promises as $key => $promise) {
                 if (!$promise instanceof Promise) {
                     throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
                 }
-                $promise->then(function ($value) use ($key, $map) {
-                    $map->put($key, $value);
+                $promise->then(function ($value) use ($key, $result) {
+                    $result->set($key, $value);
                     return $value;
                 });
                 $promise->wait();
             }
-            $resolve($map);
+            $resolve($result);
         });
     }
 
@@ -98,28 +99,27 @@ final class Promise extends AbstractPromise implements WaitInterface
      */
     public function wait(): void
     {
-        try {
-            $resolve = function ($value) {
+        $resolve = function ($value) {
+            $this->setResult($value);
+            $this->setState(self::STATE_FULFILLED);
+        };
+        $reject  = function ($value) {
+            if ($this->isPending()) {
                 $this->setResult($value);
-                $this->setState(self::STATE_FULFILLED);
-            };
-            $reject  = function ($value) {
-                if ($this->isPending()) {
-                    $this->setResult($value);
-                    $this->setState(self::STATE_REJECTED);
-                }
-            };
+                $this->setState(self::STATE_REJECTED);
+            }
+        };
+        try {
             ($this->executor)($resolve, $reject);
         } catch (\Throwable $exception) {
             $reject($exception);
         }
-        while (!$this->stack->isEmpty()) {
-            $promise = $this->stack->pop();
-            if ($promise instanceof Promise) {
+        foreach ($this->collection as $promise) {
+            if ($promise instanceof WaitInterface) {
                 $promise->wait();
             }
         }
-        $this->stack->clear();
+        $this->collection->clear();
     }
 
     /**
@@ -149,7 +149,7 @@ final class Promise extends AbstractPromise implements WaitInterface
      */
     public function __destruct()
     {
-        $this->stack->clear();
-        unset($this->stack);
+        $this->collection->clear();
+        unset($this->collection);
     }
 }

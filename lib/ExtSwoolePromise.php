@@ -2,7 +2,7 @@
 /**
  * This file is part of the Promise package, a StreamCommon open software project.
  *
- * @copyright (c) 2019 StreamCommon Team.
+ * @copyright (c) 2019-2020 StreamCommon
  * @see https://github.com/streamcommon/promise
  *
  * For the full copyright and license information, please view the LICENSE
@@ -77,7 +77,7 @@ final class ExtSwoolePromise extends AbstractPromise
         return self::create(function (callable $resolve, callable $reject) use ($onFulfilled, $onRejected) {
             while ($this->isPending()) {
                 // @codeCoverageIgnoreStart
-                usleep(25000);
+                usleep(PROMISE_WAIT);
                 // @codeCoverageIgnoreEnd
             }
             $callable = $this->isFulfilled() ? $onFulfilled : $onRejected;
@@ -96,7 +96,7 @@ final class ExtSwoolePromise extends AbstractPromise
     /**
      * {@inheritDoc}
      *
-     * @param iterable<ExtSwoolePromise> $promises
+     * @param iterable|ExtSwoolePromise[] $promises
      * @return ExtSwoolePromise
      */
     public static function all(iterable $promises): PromiseInterface
@@ -108,7 +108,9 @@ final class ExtSwoolePromise extends AbstractPromise
             foreach ($promises as $key => $promise) {
                 if (!$promise instanceof ExtSwoolePromise) {
                     $channel->close();
-                    throw new Exception\RuntimeException('Supported only Streamcommon\Promise\ExtSwoolePromise instance');
+                    throw new Exception\RuntimeException(
+                        'Supported only Streamcommon\Promise\ExtSwoolePromise instance'
+                    );
                 }
                 $promise->then(function ($value) use ($key, $result, $channel) {
                     $result->put($key, $value);
@@ -146,7 +148,7 @@ final class ExtSwoolePromise extends AbstractPromise
             // resolve async locking error
             while (!$resolved) {
                 // @codeCoverageIgnoreStart
-                usleep(25000);
+                usleep(PROMISE_WAIT);
                 // @codeCoverageIgnoreEnd
             }
         } else {
