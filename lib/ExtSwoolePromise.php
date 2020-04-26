@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Streamcommon\Promise;
 
-use Ds\Map;
+use Doctrine\Common\Collections\ArrayCollection;
 use Swoole\Coroutine;
 use Swoole\Coroutine\Channel;
 
@@ -104,8 +104,9 @@ final class ExtSwoolePromise extends AbstractPromise
         return self::create(function (callable $resolve) use ($promises) {
             $ticks   = count($promises);
             $channel = new Channel($ticks);
-            $result  = new Map();
-            foreach ($promises as $key => $promise) {
+            $result  = new ArrayCollection();
+            $key     = 0;
+            foreach ($promises as $promise) {
                 if (!$promise instanceof ExtSwoolePromise) {
                     $channel->close();
                     throw new Exception\RuntimeException(
@@ -113,16 +114,16 @@ final class ExtSwoolePromise extends AbstractPromise
                     );
                 }
                 $promise->then(function ($value) use ($key, $result, $channel) {
-                    $result->put($key, $value);
+                    $result->set($key, $value);
                     $channel->push(true);
                     return $value;
                 });
+                $key++;
             }
             while ($ticks--) {
                 $channel->pop();
             }
             $channel->close();
-            $result->ksort();
             $resolve($result);
         });
     }

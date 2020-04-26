@@ -27,6 +27,7 @@ if (file_exists(__DIR__ . '/../../../autoload.php')) {
 Runtime::enableCoroutine();
 ########### INIT ##############
 $promise1      = ExtSwoolePromise::create(function (callable $resolve) {
+    sleep(2);
     $resolve(41);
 });
 $promise2      = ExtSwoolePromise::create(function (callable $resolve) {

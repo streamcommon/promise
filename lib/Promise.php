@@ -78,7 +78,8 @@ final class Promise extends AbstractPromise implements WaitInterface
     {
         return self::create(function (callable $resolve) use ($promises) {
             $result = new ArrayCollection();
-            foreach ($promises as $key => $promise) {
+            $key    = 0;
+            foreach ($promises as $promise) {
                 if (!$promise instanceof Promise) {
                     throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
                 }
@@ -87,6 +88,7 @@ final class Promise extends AbstractPromise implements WaitInterface
                     return $value;
                 });
                 $promise->wait();
+                $key++;
             }
             $resolve($result);
         });
