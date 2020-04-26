@@ -20,7 +20,7 @@
     "phpunit/phpunit": "^9.1.3",
     "php-coveralls/php-coveralls": "^2.2.0",
     "ocramius/package-versions": "^1.5.1",
-    "BrainMaestro/composer-git-hooks": "^2.8.3"
+    "brainmaestro/composer-git-hooks": "^2.8.3"
   },
   "suggest": {
     "ext-swoole": "Install extension(^4.2.13) for using ExtSwoolePromise"
