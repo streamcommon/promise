@@ -245,4 +245,20 @@ class ExtSwoolePromiseTest extends TestCase
             $this->assertInstanceOf(RuntimeException::class, $value);
         });
     }
+
+    /**
+     * Test promise catch
+     *
+     *
+     * @return void
+     */
+    public function testPromiseCatch(): void
+    {
+        $promise = ExtSwoolePromise::create(function ($resolver) {
+            throw new RuntimeException();
+        });
+        $promise->catch(function ($value) {
+            $this->assertInstanceOf(RuntimeException::class, $value);
+        });
+    }
 }

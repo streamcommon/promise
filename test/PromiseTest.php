@@ -253,4 +253,22 @@ class PromiseTest extends TestCase
         });
         $promise->wait();
     }
+
+    /**
+     * Test promise catch
+     *
+     *
+     * @return void
+     */
+    public function testPromiseCatch(): void
+    {
+        /** @var Promise $promise */
+        $promise = Promise::create(function ($resolver) {
+            throw new RuntimeException();
+        });
+        $promise->catch(function ($value) {
+            $this->assertInstanceOf(RuntimeException::class, $value);
+        });
+        $promise->wait();
+    }
 }
