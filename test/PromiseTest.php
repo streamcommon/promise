@@ -305,7 +305,7 @@ class PromiseTest extends TestCase
     public function testPromiseNonStringableValuesAreConverted(): void
     {
         $promise = Promise::create(function (callable $resolve, callable $reject) {
-            $reject(new RuntimeException(['some exceptional message']));
+            $reject(['some exceptional message']);
         });
 
         /** @var Promise $promise */
