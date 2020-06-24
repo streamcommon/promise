@@ -286,6 +286,25 @@ class ExtSwoolePromiseTest extends TestCase
         });
     }
 
+
+    /**
+     * Test promise all with non stringable  which should be converted to a string
+     *
+     * @return void
+     */
+    public function testPromiseNonStringableValuesAreConverted(): void
+    {
+        $promise = ExtSwoolePromise::create(function (callable $resolve, callable $reject) {
+            $reject(new RuntimeException(['some exceptional message']));
+        });
+
+        /** @var ExtSwoolePromise $promise */
+        $promise = ExtSwoolePromise::all([$promise]);
+        $promise->then(null, function ($value) {
+            $this->assertEquals(var_export('some exceptional message', true), $value);
+        });
+    }
+
     /**
      * Test promise all first error received is the error returned
      *
