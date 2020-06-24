@@ -123,7 +123,6 @@ final class ExtSwoolePromise extends AbstractPromise
                     $channel->push(true);
                     if ($firstError === null) {
                         $firstError = self::stringifyError($error);
-                        ;
                     }
                 });
                 $key++;
