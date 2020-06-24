@@ -246,6 +246,69 @@ class ExtSwoolePromiseTest extends TestCase
         });
     }
 
+
+    /**
+     * Test promise all with failures
+     *
+     * @return void
+     */
+    public function testPromiseAnyFailure(): void
+    {
+        $promise1 = Promise::create(function (callable $resolve) {
+            $resolve(41);
+        });
+        $promise2 = ExtSwoolePromise::create(function (callable $resolve, callable $reject) {
+            $reject('A incidental error has occurred');
+        });
+
+        /** @var ExtSwoolePromise $promise */
+        $promise = ExtSwoolePromise::all([$promise1, $promise2]);
+        $promise->then(null, function ($value) {
+            $this->assertEquals('A incidental error has occurred', $value);
+        });
+    }
+
+    /**
+     * Test promise all with a throwable failure which should be converted to a string
+     *
+     * @return void
+     */
+    public function testPromiseThrowableFailuresAreConverted(): void
+    {
+        $promise = ExtSwoolePromise::create(function (callable $resolve, callable $reject) {
+            $reject(new RuntimeException('some exceptional message'));
+        });
+
+        /** @var ExtSwoolePromise $promise */
+        $promise = ExtSwoolePromise::all([$promise]);
+        $promise->then(null, function ($value) {
+            $this->assertEquals('some exceptional message', $value);
+        });
+    }
+
+    /**
+     * Test promise all first error received is the error returned
+     *
+     * @return void
+     */
+    public function testPromiseAllMultipleErrorsWillStillOnlyReturnFirstFailure()
+    {
+        $promise1 = ExtSwoolePromise::create(function (callable $resolve, callable $reject) {
+            $reject(new RuntimeException('some failing message'));
+        });
+
+        $promise2 = ExtSwoolePromise::create(function (callable $resolve, callable $reject) {
+            $reject(new RuntimeException('this message is also failing but should not appear'));
+        });
+
+        /** @var ExtSwoolePromise $promise */
+        $promise = ExtSwoolePromise::all([$promise1, $promise2]);
+        $promise->then(null, function ($value) {
+            $this->assertEquals('some failing message', $value);
+        });
+    }
+
+
     /**
      * Test promise catch
      *

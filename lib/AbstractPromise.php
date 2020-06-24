@@ -111,4 +111,20 @@ abstract class AbstractPromise implements PromiseInterface
     {
         return $this->state == self::STATE_FULFILLED;
     }
+
+    /**
+     * @param mixed $error
+     * @return string
+     */
+    protected static function stringifyError($error): string
+    {
+        $formattedError = $error;
+        if ($error instanceof \Throwable) {
+            $formattedError = $error->getMessage();
+        } elseif (!is_string($error)) {
+            $formattedError = var_export($error, true);
+        }
+
+        return $formattedError;
+    }
 }
