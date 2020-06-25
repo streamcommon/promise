@@ -278,47 +278,6 @@ class PromiseTest extends TestCase
     }
 
     /**
-     * Test promise all with a throwable failure which should be converted to a string
-     *
-     * @return void
-     */
-    public function testPromiseThrowableFailuresAreConverted(): void
-    {
-        $promise = Promise::create(function (callable $resolve, callable $reject) {
-            $reject(new RuntimeException('some exceptional message'));
-        });
-
-        /** @var Promise $promise */
-        $promise = Promise::all([$promise]);
-        $promise->then(null, function ($value) {
-            $this->assertEquals('some exceptional message', $value);
-        });
-
-        $promise->wait();
-    }
-
-    /**
-     * Test promise all with non stringable  which should be converted to a string
-     *
-     * @return void
-     */
-    public function testPromiseNonStringableValuesAreConverted(): void
-    {
-        $promise = Promise::create(function (callable $resolve, callable $reject) {
-            $reject(['some exceptional message']);
-        });
-
-        /** @var Promise $promise */
-        $promise = Promise::all([$promise]);
-        $promise->then(null, function ($value) {
-            $this->assertEquals(var_export('some exceptional message', true), $value);
-        });
-
-        $promise->wait();
-    }
-
-
-    /**
      * Test promise all first error received is the error returned
      *
      * @return void

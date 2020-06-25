@@ -93,7 +93,7 @@ final class Promise extends AbstractPromise implements WaitInterface
                         return;
                     }
 
-                    $firstError = self::stringifyError($error);
+                    $firstError = $error;
                 });
                 $promise->wait();
                 $key++;
