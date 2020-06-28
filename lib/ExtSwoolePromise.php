@@ -101,11 +101,13 @@ final class ExtSwoolePromise extends AbstractPromise
      */
     public static function all(iterable $promises): PromiseInterface
     {
-        return self::create(function (callable $resolve) use ($promises) {
-            $ticks   = count($promises);
-            $channel = new Channel($ticks);
-            $result  = new ArrayCollection();
-            $key     = 0;
+        return self::create(function (callable $resolve, callable $reject) use ($promises) {
+            $ticks = count($promises);
+
+            $firstError = null;
+            $channel    = new Channel($ticks);
+            $result     = new ArrayCollection();
+            $key        = 0;
             foreach ($promises as $promise) {
                 if (!$promise instanceof ExtSwoolePromise) {
                     $channel->close();
@@ -117,6 +119,11 @@ final class ExtSwoolePromise extends AbstractPromise
                     $result->set($key, $value);
                     $channel->push(true);
                     return $value;
+                }, function ($error) use ($channel, &$firstError) {
+                    $channel->push(true);
+                    if ($firstError === null) {
+                        $firstError = $error;
+                    }
                 });
                 $key++;
             }
@@ -124,6 +131,12 @@ final class ExtSwoolePromise extends AbstractPromise
                 $channel->pop();
             }
             $channel->close();
+
+            if ($firstError !== null) {
+                $reject($firstError);
+                return;
+            }
+
             $resolve($result);
         });
     }

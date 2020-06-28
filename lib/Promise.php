@@ -76,9 +76,11 @@ final class Promise extends AbstractPromise implements WaitInterface
      */
     public static function all(iterable $promises): PromiseInterface
     {
-        return self::create(function (callable $resolve) use ($promises) {
-            $result = new ArrayCollection();
-            $key    = 0;
+        return self::create(function (callable $resolve, callable $reject) use ($promises) {
+            $result     = new ArrayCollection();
+            $key        = 0;
+            $firstError = null;
+
             foreach ($promises as $promise) {
                 if (!$promise instanceof Promise) {
                     throw new Exception\RuntimeException('Supported only Streamcommon\Promise\Promise instance');
@@ -86,10 +88,22 @@ final class Promise extends AbstractPromise implements WaitInterface
                 $promise->then(function ($value) use ($key, $result) {
                     $result->set($key, $value);
                     return $value;
+                }, function ($error) use (&$firstError) {
+                    if ($firstError !== null) {
+                        return;
+                    }
+
+                    $firstError = $error;
                 });
                 $promise->wait();
                 $key++;
             }
+
+            if ($firstError !== null) {
+                $reject($firstError);
+                return;
+            }
+
             $resolve($result);
         });
     }

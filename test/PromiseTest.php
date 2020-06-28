@@ -255,6 +255,56 @@ class PromiseTest extends TestCase
     }
 
     /**
+     * Test promise all with failures
+     *
+     * @return void
+     */
+    public function testPromiseAnyFailure(): void
+    {
+        $promise1 = Promise::create(function (callable $resolve) {
+            $resolve(41);
+        });
+        $promise2 = Promise::create(function (callable $resolve, callable $reject) {
+            $reject('A incidental error has occurred');
+        });
+
+        /** @var Promise $promise */
+        $promise = Promise::all([$promise1, $promise2]);
+        $promise->then(null, function ($value) {
+            $this->assertEquals('A incidental error has occurred', $value);
+        });
+
+        $promise->wait();
+    }
+
+    /**
+     * Test promise all first error received is the error returned
+     *
+     * @return void
+     */
+    public function testPromiseAllMultipleErrorsWillStillOnlyReturnFirstFailure()
+    {
+        $promise1 = Promise::create(function (callable $resolve, callable $reject) {
+            $reject(new RuntimeException('some failing message'));
+        });
+
+        $promise2 = Promise::create(function (callable $resolve, callable $reject) {
+            $reject(new RuntimeException('this message is also failing but should not appear'));
+        });
+
+        /** @var Promise $promise */
+        $promise = Promise::all([$promise1, $promise2]);
+        $promise->then(null, function ($value) {
+            $this->assertEquals('some failing message', $value);
+        });
+
+        $promise->wait();
+    }
+
+
+
+
+    /**
      * Test promise catch
      *
      *

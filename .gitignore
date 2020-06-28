@@ -3,4 +3,5 @@
 clover.xml
 coveralls-upload.json
 phpunit.xml
+vendor/cghooks.lock
 vendor/
