@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         php_version: ['7.3', '7.4']
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest]
     steps:
       - name: Set up PHP ${{ matrix.php_version }}
         uses: shivammathur/setup-php@v1
