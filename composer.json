@@ -40,9 +40,6 @@
   },
   "extra": {
     "hooks": {
-      "pre-commit": [
-        "composer cs-fix"
-      ],
       "pre-push": [
         "composer license-check",
         "composer cs-check",
@@ -57,8 +54,9 @@
     "cs-check": "phpcs",
     "cs-fix": "phpcbf",
     "license-check": "docheader check lib/ test/ example/",
-    "phpstan": "phpstan analyze -c phpstan.neon ./lib ./example",
+    "phpstan": "phpstan analyze -l max ./lib ./example",
     "phpunit": "phpunit --colors=always",
+    "phpunit-coverage-text": "phpunit --color=always --coverage-text",
     "phpunit-coverage": "phpunit --colors=always --coverage-clover clover.xml",
     "coveralls": "php-coveralls -v"
   }

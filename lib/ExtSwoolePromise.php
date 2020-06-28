@@ -70,7 +70,7 @@ final class ExtSwoolePromise extends AbstractPromise
      *
      * @param callable|null $onFulfilled
      * @param callable|null $onRejected
-     * @return ExtSwoolePromise
+     * @return PromiseInterface
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
@@ -97,11 +97,12 @@ final class ExtSwoolePromise extends AbstractPromise
      * {@inheritDoc}
      *
      * @param iterable|ExtSwoolePromise[] $promises
-     * @return ExtSwoolePromise
+     * @return PromiseInterface
      */
     public static function all(iterable $promises): PromiseInterface
     {
         return self::create(function (callable $resolve, callable $reject) use ($promises) {
+            // @phpstan-ignore-next-line
             $ticks = count($promises);
 
             $firstError = null;
@@ -118,7 +119,6 @@ final class ExtSwoolePromise extends AbstractPromise
                 $promise->then(function ($value) use ($key, $result, $channel) {
                     $result->set($key, $value);
                     $channel->push(true);
-                    return $value;
                 }, function ($error) use ($channel, &$firstError) {
                     $channel->push(true);
                     if ($firstError === null) {

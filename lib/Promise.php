@@ -44,7 +44,7 @@ final class Promise extends AbstractPromise implements WaitInterface
      *
      * @param callable|null $onFulfilled
      * @param callable|null $onRejected
-     * @return Promise
+     * @return PromiseInterface
      */
     public function then(?callable $onFulfilled = null, ?callable $onRejected = null): PromiseInterface
     {
@@ -72,7 +72,7 @@ final class Promise extends AbstractPromise implements WaitInterface
      * {@inheritDoc}
      *
      * @param iterable|Promise[] $promises
-     * @return Promise
+     * @return PromiseInterface
      */
     public static function all(iterable $promises): PromiseInterface
     {
@@ -87,7 +87,6 @@ final class Promise extends AbstractPromise implements WaitInterface
                 }
                 $promise->then(function ($value) use ($key, $result) {
                     $result->set($key, $value);
-                    return $value;
                 }, function ($error) use (&$firstError) {
                     if ($firstError !== null) {
                         return;

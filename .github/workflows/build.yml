@@ -1,0 +1,58 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build (PHP ${{ matrix.php_version }}, OS ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        php_version: ['7.3', '7.4']
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    steps:
+      - name: Set up PHP ${{ matrix.php_version }}
+        uses: shivammathur/setup-php@v1
+        with:
+          tools: pecl
+          php-version: ${{ matrix.php_version }}
+          extensions: swoole
+          coverage: pcov
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Show versions
+        run: |
+          php -v
+          composer -V
+          composer show
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v2
+        with:
+          path: vendor
+          key: ${{ runner.os }}-node-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.composer-cache.outputs.cache-hit != 'true'
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: License check
+        run: composer license-check
+
+      - name: Code style check
+        if: matrix.os != 'windows-latest'
+        run: composer cs-check
+
+      - name: Code quality check
+        run: composer phpstan
+
+      - name: Tests
+        run: composer phpunit

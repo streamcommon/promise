@@ -10,3 +10,4 @@
 /test/ export-ignore
 /data/ export-ignore
 /Dockerfile export-ignore
+/.github export-ignore

@@ -35,6 +35,7 @@ $promise2      = ExtSwoolePromise::create(function (callable $resolve) {
 });
 $promisesArray = [$promise1, $promise2];
 
+// @phpstan-ignore-next-line
 $promise = ExtSwoolePromise::all([$promise1, $promise2]);
 $promise->then(function ($value) {
     echo $value[0] . ' === 41' . PHP_EOL;
