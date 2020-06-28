@@ -220,7 +220,7 @@ For more info check [example](/example) scripts.
 [Master]: https://travis-ci.org/streamcommon/promise
 [Master coverage image]: https://coveralls.io/repos/github/streamcommon/promise/badge.svg?branch=master
 [Master coverage]: https://coveralls.io/github/streamcommon/promise?branch=master
-[Develop image]: https://travis-ci.org/streamcommon/promise.svg?branch=develop
+[Develop image]: https://github.com/streamcommon/promise/workflows/Build/badge.svg?branch=develop
 [Develop]: https://travis-ci.org/streamcommon/promise
 [Develop coverage image]: https://coveralls.io/repos/github/streamcommon/promise/badge.svg?branch=develop
 [Develop coverage]: https://coveralls.io/github/streamcommon/promise?branch=develop
